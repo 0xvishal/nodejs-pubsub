@@ -22,9 +22,12 @@ guides.
 * [Samples](#samples)
   * [Create Push Subscription](#create-push-subscription)
   * [Create Subscription](#create-subscription)
+  * [Create Subscription With Dead Letter Policy](#create-subscription-with-dead-letter-policy)
+  * [Create Subscription with ordering enabled](#create-subscription-with-ordering-enabled)
   * [Create Topic](#create-topic)
   * [Delete Subscription](#delete-subscription)
   * [Delete Topic](#delete-topic)
+  * [Detach Subscription](#detach-subscription)
   * [Get Subscription](#get-subscription)
   * [Get Subscription Policy](#get-subscription-policy)
   * [Get Topic Policy](#get-topic-policy)
@@ -33,21 +36,26 @@ guides.
   * [List Subscriptions On a Topic](#list-subscriptions-on-a-topic)
   * [Listen For Errors](#listen-for-errors)
   * [Listen For Messages](#listen-for-messages)
-  * [Listen For Ordered Messages](#listen-for-ordered-messages)
+  * [Listen For Messages With Custom Attributes](#listen-for-messages-with-custom-attributes)
   * [Modify Push Configuration](#modify-push-configuration)
+  * [OpenTelemetry Tracing](#opentelemetry-tracing)
   * [Publish Batched Messages](#publish-batched-messages)
   * [Publish Message](#publish-message)
   * [Publish Message With Custom Attributes](#publish-message-with-custom-attributes)
   * [Publish Ordered Message](#publish-ordered-message)
   * [Publish With Retry Settings](#publish-with-retry-settings)
   * [Quickstart](#quickstart)
+  * [Remove Dead Letter Policy](#remove-dead-letter-policy)
+  * [Resume Publish](#resume-publish)
   * [Set Subscription IAM Policy](#set-subscription-iam-policy)
   * [Set Topic IAM Policy](#set-topic-iam-policy)
   * [Subscribe With Flow Control Settings](#subscribe-with-flow-control-settings)
   * [Synchronous Pull](#synchronous-pull)
+  * [Synchronous Pull with delivery attempt.](#synchronous-pull-with-delivery-attempt.)
   * [Synchronous Pull With Lease Management](#synchronous-pull-with-lease-management)
   * [Test Subscription Permissions](#test-subscription-permissions)
   * [Test Topic Permissions](#test-topic-permissions)
+  * [Update Dead Letter Policy](#update-dead-letter-policy)
 
 ## Before you begin
 
@@ -95,6 +103,44 @@ __Usage:__
 
 
 `node createSubscription.js <topic-name> <subscription-name>`
+
+
+-----
+
+
+
+
+### Create Subscription With Dead Letter Policy
+
+Creates a new subscription With Dead Letter Policy.
+
+View the [source code](https://github.com/googleapis/nodejs-pubsub/blob/master/samples/createSubscriptionWithDeadLetterPolicy.js).
+
+[![Open in Cloud Shell][shell_img]](https://console.cloud.google.com/cloudshell/open?git_repo=https://github.com/googleapis/nodejs-pubsub&page=editor&open_in_editor=samples/createSubscriptionWithDeadLetterPolicy.js,samples/README.md)
+
+__Usage:__
+
+
+`node createSubscriptionWithDeadLetterPolicy.js <topic-name> <subscription-name> <dead-letter-topic-name>`
+
+
+-----
+
+
+
+
+### Create Subscription with ordering enabled
+
+Creates a new subscription with ordering enabled.
+
+View the [source code](https://github.com/googleapis/nodejs-pubsub/blob/master/samples/createSubscriptionWithOrdering.js).
+
+[![Open in Cloud Shell][shell_img]](https://console.cloud.google.com/cloudshell/open?git_repo=https://github.com/googleapis/nodejs-pubsub&page=editor&open_in_editor=samples/createSubscriptionWithOrdering.js,samples/README.md)
+
+__Usage:__
+
+
+`node createSubscriptionWithOrdering.js <topic-name> <subscription-name>`
 
 
 -----
@@ -152,6 +198,25 @@ __Usage:__
 
 
 `node deleteTopic.js <topic-name>`
+
+
+-----
+
+
+
+
+### Detach Subscription
+
+Detaches a subscription from a topic.
+
+View the [source code](https://github.com/googleapis/nodejs-pubsub/blob/master/samples/detachSubscription.js).
+
+[![Open in Cloud Shell][shell_img]](https://console.cloud.google.com/cloudshell/open?git_repo=https://github.com/googleapis/nodejs-pubsub&page=editor&open_in_editor=samples/detachSubscription.js,samples/README.md)
+
+__Usage:__
+
+
+`node detachSubscription.js <existing-subscription-name>`
 
 
 -----
@@ -311,18 +376,18 @@ __Usage:__
 
 
 
-### Listen For Ordered Messages
+### Listen For Messages With Custom Attributes
 
-Demonstrates how to order messages coming from a topic. Please see "Publish Ordered Message" for the other side of this.
+Demonstrates how to receive and process custom attributes on messages.
 
-View the [source code](https://github.com/googleapis/nodejs-pubsub/blob/master/samples/listenForOrderedMessages.js).
+View the [source code](https://github.com/googleapis/nodejs-pubsub/blob/master/samples/listenWithCustomAttributes.js).
 
-[![Open in Cloud Shell][shell_img]](https://console.cloud.google.com/cloudshell/open?git_repo=https://github.com/googleapis/nodejs-pubsub&page=editor&open_in_editor=samples/listenForOrderedMessages.js,samples/README.md)
+[![Open in Cloud Shell][shell_img]](https://console.cloud.google.com/cloudshell/open?git_repo=https://github.com/googleapis/nodejs-pubsub&page=editor&open_in_editor=samples/listenWithCustomAttributes.js,samples/README.md)
 
 __Usage:__
 
 
-`node listenForOrderedMessages.js <subscription-name> [timeout-in-seconds]`
+`node listenWithCustomAttributes.js <subscription-name> [timeout-in-seconds]`
 
 
 -----
@@ -342,6 +407,25 @@ __Usage:__
 
 
 `node modifyPushConfig.js <topic-name> <subscription-name>`
+
+
+-----
+
+
+
+
+### OpenTelemetry Tracing
+
+Demonstrates how to enable OpenTelemetry tracing in a publisher or subscriber.
+
+View the [source code](https://github.com/googleapis/nodejs-pubsub/blob/master/samples/opentelemetryTracing.js).
+
+[![Open in Cloud Shell][shell_img]](https://console.cloud.google.com/cloudshell/open?git_repo=https://github.com/googleapis/nodejs-pubsub&page=editor&open_in_editor=samples/opentelemetryTracing.js,samples/README.md)
+
+__Usage:__
+
+
+`node opentelemetryTracing.js <topic-name> <subscription-name>`
 
 
 -----
@@ -408,7 +492,7 @@ __Usage:__
 
 ### Publish Ordered Message
 
-Demonstrates how to publish messages to a topic with ordering. Please see "Listen for Ordered Messages" for the other side of this.
+Demonstrates how to publish messages to a topic with ordering. Please see "Create Subscription With Ordering" for information on setting up a subscription that will receive the messages with proper ordering.
 
 View the [source code](https://github.com/googleapis/nodejs-pubsub/blob/master/samples/publishOrderedMessage.js).
 
@@ -455,7 +539,45 @@ View the [source code](https://github.com/googleapis/nodejs-pubsub/blob/master/s
 __Usage:__
 
 
-`node quickstart.js <project-id> <topic-name>`
+`node quickstart.js <project-id> <topic-name> <subscription-name>`
+
+
+-----
+
+
+
+
+### Remove Dead Letter Policy
+
+Remove Dead Letter Policy from subscription.
+
+View the [source code](https://github.com/googleapis/nodejs-pubsub/blob/master/samples/removeDeadLetterPolicy.js).
+
+[![Open in Cloud Shell][shell_img]](https://console.cloud.google.com/cloudshell/open?git_repo=https://github.com/googleapis/nodejs-pubsub&page=editor&open_in_editor=samples/removeDeadLetterPolicy.js,samples/README.md)
+
+__Usage:__
+
+
+`node removeDeadLetterPolicy.js <topic-name> <subscription-name>`
+
+
+-----
+
+
+
+
+### Resume Publish
+
+Demonstrates how to resume publishing on an ordering key if publishing fails for a message.
+
+View the [source code](https://github.com/googleapis/nodejs-pubsub/blob/master/samples/resumePublish.js).
+
+[![Open in Cloud Shell][shell_img]](https://console.cloud.google.com/cloudshell/open?git_repo=https://github.com/googleapis/nodejs-pubsub&page=editor&open_in_editor=samples/resumePublish.js,samples/README.md)
+
+__Usage:__
+
+
+`node resumePublish.js <topic-name> <data>`
 
 
 -----
@@ -539,6 +661,25 @@ __Usage:__
 
 
 
+### Synchronous Pull with delivery attempt.
+
+Receive messages synchronously with delivery attempt.
+
+View the [source code](https://github.com/googleapis/nodejs-pubsub/blob/master/samples/synchronousPullWithDeliveryAttempts.js).
+
+[![Open in Cloud Shell][shell_img]](https://console.cloud.google.com/cloudshell/open?git_repo=https://github.com/googleapis/nodejs-pubsub&page=editor&open_in_editor=samples/synchronousPullWithDeliveryAttempts.js,samples/README.md)
+
+__Usage:__
+
+
+`node synchronousPullWithDeliveryAttempts.js <project-id> <subscription-name>`
+
+
+-----
+
+
+
+
 ### Synchronous Pull With Lease Management
 
 Receive messages synchronously, setting lease management properties.
@@ -589,6 +730,25 @@ __Usage:__
 
 
 `node testTopicPermissions.js <topic-name>`
+
+
+-----
+
+
+
+
+### Update Dead Letter Policy
+
+Update Dead Letter Policy in subscription.
+
+View the [source code](https://github.com/googleapis/nodejs-pubsub/blob/master/samples/updateDeadLetterPolicy.js).
+
+[![Open in Cloud Shell][shell_img]](https://console.cloud.google.com/cloudshell/open?git_repo=https://github.com/googleapis/nodejs-pubsub&page=editor&open_in_editor=samples/updateDeadLetterPolicy.js,samples/README.md)
+
+__Usage:__
+
+
+`node updateDeadLetterPolicy.js <topic-name> <subscription-name>`
 
 
 

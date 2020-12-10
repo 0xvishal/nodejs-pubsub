@@ -15,19 +15,19 @@
  */
 
 import * as assert from 'assert';
-import {describe, it} from 'mocha';
-import {ServiceError, Metadata} from '@grpc/grpc-js';
+import {describe, it, beforeEach} from 'mocha';
+import {grpc} from 'google-gax';
 import {PublishError} from '../../src/publisher/publish-error';
 
 describe('PublishError', () => {
   let error: PublishError;
 
   const orderingKey = 'abcd';
-  const fakeError = new Error('Oh noes') as ServiceError;
+  const fakeError = new Error('Oh noes') as grpc.ServiceError;
 
   fakeError.code = 1;
   fakeError.details = 'Something went wrong!';
-  fakeError.metadata = new Metadata();
+  fakeError.metadata = new grpc.Metadata();
 
   beforeEach(() => {
     error = new PublishError(orderingKey, fakeError);

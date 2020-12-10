@@ -20,15 +20,15 @@
 
 import {promisifyAll} from '@google-cloud/promisify';
 import arrify = require('arrify');
-import {CallOptions} from 'google-gax';
+import {CallOptions, IamProtos} from 'google-gax';
 
-import {google} from '../proto/iam';
+import {google} from '../protos/protos';
 
 import {Omit, PubSub, RequestCallback, ResourceCallback} from './pubsub';
 
 export type Policy = {
   etag?: string | Buffer;
-} & Omit<google.iam.v1.IPolicy, 'etag'>;
+} & Omit<IamProtos.google.iam.v1.IPolicy, 'etag'>;
 
 export type GetPolicyCallback = RequestCallback<Policy>;
 export type SetPolicyCallback = RequestCallback<Policy>;
@@ -47,11 +47,11 @@ export interface IamPermissionsMap {
 
 export type TestIamPermissionsResponse = [
   IamPermissionsMap,
-  google.iam.v1.ITestIamPermissionsResponse
+  IamProtos.google.iam.v1.ITestIamPermissionsResponse
 ];
 export type TestIamPermissionsCallback = ResourceCallback<
   IamPermissionsMap,
-  google.iam.v1.ITestIamPermissionsResponse
+  IamProtos.google.iam.v1.ITestIamPermissionsResponse
 >;
 
 /**
@@ -93,16 +93,11 @@ export type TestIamPermissionsCallback = ResourceCallback<
  * // subscription.iam
  */
 export class IAM {
-  // tslint:disable-next-line variable-name
-  Promise?: PromiseConstructor;
   pubsub: PubSub;
   request: typeof PubSub.prototype.request;
   id: string;
 
   constructor(pubsub: PubSub, id: string) {
-    if (pubsub.Promise) {
-      this.Promise = pubsub.Promise;
-    }
     this.pubsub = pubsub;
     this.request = pubsub.request.bind(pubsub);
     this.id = id;
@@ -124,7 +119,7 @@ export class IAM {
    * Get the IAM policy
    *
    * @param {object} [gaxOptions] Request configuration options, outlined
-   *     here: https://googleapis.github.io/gax-nodejs/CallSettings.html.
+   *     here: https://googleapis.github.io/gax-nodejs/interfaces/CallOptions.html.
    * @param {GetPolicyCallback} [callback] Callback function.
    * @returns {Promise<GetPolicyResponse>}
    *
@@ -198,7 +193,7 @@ export class IAM {
    * @param {Array<object>} [policy.rules] Rules to be applied to the policy.
    * @param {string} [policy.etag] Etags are used to perform a read-modify-write.
    * @param {object} [gaxOptions] Request configuration options, outlined
-   *     here: https://googleapis.github.io/gax-nodejs/CallSettings.html.
+   *     here: https://googleapis.github.io/gax-nodejs/interfaces/CallOptions.html.
    * @param {SetPolicyCallback} callback Callback function.
    * @returns {Promise<SetPolicyResponse>}
    *
@@ -302,7 +297,7 @@ export class IAM {
    *
    * @param {string|string[]} permissions The permission(s) to test for.
    * @param {object} [gaxOptions] Request configuration options, outlined
-   *     here: https://googleapis.github.io/gax-nodejs/CallSettings.html.
+   *     here: https://googleapis.github.io/gax-nodejs/interfaces/CallOptions.html.
    * @param {TestIamPermissionsCallback} [callback] Callback function.
    * @returns {Promise<TestIamPermissionsResponse>}
    *
@@ -370,7 +365,7 @@ export class IAM {
       permissions: arrify(permissions),
     };
 
-    this.request<google.iam.v1.ITestIamPermissionsResponse>(
+    this.request<IamProtos.google.iam.v1.ITestIamPermissionsResponse>(
       {
         client: 'SubscriberClient',
         method: 'testIamPermissions',

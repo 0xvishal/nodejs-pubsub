@@ -25,32 +25,43 @@ const execSync = cmd => cp.execSync(cmd, {encoding: 'utf-8'});
 describe('topics', () => {
   const projectId = process.env.GCLOUD_PROJECT;
   const pubsub = new PubSub({projectId});
-  const topicNameOne = `nodejs-docs-samples-test-${uuid.v4()}`;
-  const topicNameTwo = `nodejs-docs-samples-test-${uuid.v4()}`;
-  const subscriptionNameOne = `nodejs-docs-samples-test-${uuid.v4()}`;
-  const subscriptionNameTwo = `nodejs-docs-samples-test-${uuid.v4()}`;
-  const subscriptionNameThree = `nodejs-docs-samples-test-${uuid.v4()}`;
-  const subscriptionNameFour = `nodejs-docs-samples-test-${uuid.v4()}`;
+  const runId = uuid.v4();
+  console.log(`Topics runId: ${runId}`);
+  const topicNameOne = `top1-${runId}`;
+  const topicNameTwo = `top2-${runId}`;
+  const topicNameThree = `top3-${runId}`;
+  const subscriptionNameOne = `sub1-${runId}`;
+  const subscriptionNameTwo = `sub2-${runId}`;
+  const subscriptionNameThree = `sub3-${runId}`;
+  const subscriptionNameFour = `sub4-${runId}`;
+  const subscriptionNameFive = `sub5-${runId}`;
   const fullTopicNameOne = `projects/${projectId}/topics/${topicNameOne}`;
+  const fullTopicNameThree = `projects/${projectId}/topics/${topicNameThree}`;
   const expectedMessage = {data: 'Hello, world!'};
 
   function commandFor(action) {
     return `node ${action}.js`;
   }
 
-  before(() => {
-    return pubsub.createTopic(topicNameTwo).catch(console.error);
+  before(async () => {
+    // topicNameOne is created during the createTopic test.
+    await pubsub.createTopic(topicNameTwo);
+    await pubsub.createTopic(topicNameThree);
   });
 
-  after(() => {
-    return Promise.all([
-      pubsub.subscription(subscriptionNameOne).delete(),
-      pubsub.topic(topicNameOne).delete(),
-      pubsub.topic(topicNameTwo).delete(),
-      pubsub.subscription(subscriptionNameTwo).delete(),
-      pubsub.subscription(subscriptionNameThree).delete(),
-      pubsub.subscription(subscriptionNameFour).delete(),
-    ]).catch(console.error);
+  async function cleanSubs() {
+    const [subscriptions] = await pubsub.getSubscriptions();
+    await Promise.all(
+      subscriptions.filter(x => x.name.endsWith(runId)).map(x => x.delete())
+    );
+  }
+
+  after(async () => {
+    await cleanSubs();
+    const [topics] = await pubsub.getTopics();
+    await Promise.all(
+      topics.filter(x => x.name.endsWith(runId)).map(x => x.delete())
+    );
   });
 
   // Helper function to pull one message.
@@ -58,7 +69,7 @@ describe('topics', () => {
   const _pullOneMessage = subscriptionObj => {
     return new Promise((resolve, reject) => {
       const timeoutHandler = setTimeout(() => {
-        reject(new Error(`_pullOneMessage timed out`));
+        reject(new Error('_pullOneMessage timed out'));
       }, 55000);
 
       subscriptionObj.once('error', reject).once('message', message => {
@@ -73,22 +84,23 @@ describe('topics', () => {
     const output = execSync(`${commandFor('createTopic')} ${topicNameOne}`);
     assert.include(output, `Topic ${topicNameOne} created.`);
     const [topics] = await pubsub.getTopics();
-    assert(topics.some(t => t.name === fullTopicNameOne));
+    const exists = topics.some(t => t.name === fullTopicNameOne);
+    assert.ok(exists, 'Topic was created');
   });
 
   it('should list topics', async () => {
     const output = execSync(`${commandFor('listAllTopics')}`);
-    assert.match(output, /Topics:/);
-    assert.match(output, new RegExp(fullTopicNameOne));
+    assert.include(output, 'Topics:');
+    assert.include(output, fullTopicNameThree);
   });
 
   it('should publish a simple message', async () => {
     const [subscription] = await pubsub
-      .topic(topicNameOne)
+      .topic(topicNameThree)
       .subscription(subscriptionNameOne)
       .get({autoCreate: true});
     execSync(
-      `${commandFor('publishMessage')} ${topicNameOne} "${
+      `${commandFor('publishMessage')} ${topicNameThree} "${
         expectedMessage.data
       }"`
     );
@@ -98,11 +110,11 @@ describe('topics', () => {
 
   it('should publish a JSON message', async () => {
     const [subscription] = await pubsub
-      .topic(topicNameOne)
+      .topic(topicNameThree)
       .subscription(subscriptionNameOne)
       .get({autoCreate: true});
     execSync(
-      `${commandFor('publishMessage')} ${topicNameOne} "${
+      `${commandFor('publishMessage')} ${topicNameThree} "${
         expectedMessage.data
       }"`
     );
@@ -115,11 +127,11 @@ describe('topics', () => {
 
   it('should publish a message with custom attributes', async () => {
     const [subscription] = await pubsub
-      .topic(topicNameOne)
+      .topic(topicNameThree)
       .subscription(subscriptionNameOne)
       .get({autoCreate: true});
     execSync(
-      `${commandFor('publishMessageWithCustomAttributes')} ${topicNameOne} "${
+      `${commandFor('publishMessageWithCustomAttributes')} ${topicNameThree} "${
         expectedMessage.data
       }"`
     );
@@ -132,90 +144,100 @@ describe('topics', () => {
   });
 
   it('should publish ordered messages', async () => {
-    const topics = require('../publishOrderedMessage');
-
     const [subscription] = await pubsub
       .topic(topicNameTwo)
       .subscription(subscriptionNameTwo)
       .get({autoCreate: true});
 
-    let messageId = await topics.publishOrderedMessage(
-      topicNameTwo,
-      expectedMessage.data
+    execSync(
+      `${commandFor('publishOrderedMessage')} ${topicNameTwo} "${
+        expectedMessage.data
+      }" my-key`
     );
-    let message = await _pullOneMessage(subscription);
-    assert.strictEqual(message.id, messageId);
+    const message = await _pullOneMessage(subscription);
+    assert.strictEqual(message.orderingKey, 'my-key');
     assert.strictEqual(message.data.toString(), expectedMessage.data);
-    assert.strictEqual(message.attributes.counterId, '1');
-
-    messageId = await topics.publishOrderedMessage(
-      topicNameTwo,
-      expectedMessage.data
-    );
-    message = await _pullOneMessage(subscription);
-    assert.strictEqual(message.id, messageId);
-    assert.strictEqual(message.data.toString(), expectedMessage.data);
-    assert.strictEqual(message.attributes.counterId, '2');
-    await topics.publishOrderedMessage(topicNameTwo, expectedMessage.data);
   });
 
   it('should publish with specific batch settings', async () => {
     const maxMessages = 10;
     const waitTime = 1000;
     const [subscription] = await pubsub
-      .topic(topicNameOne)
+      .topic(topicNameThree)
       .subscription(subscriptionNameThree)
       .get({autoCreate: true});
     const startTime = Date.now();
     execSync(
-      `${commandFor('publishBatchedMessages')} ${topicNameOne} "${
+      `${commandFor('publishBatchedMessages')} ${topicNameThree} "${
         expectedMessage.data
       }" ${maxMessages} ${waitTime}`
     );
 
     const {data, publishTime} = await _pullOneMessage(subscription);
     const actualWait = publishTime.getTime() - startTime;
-    const acceptableLatency = 100;
+    const acceptableLatency = 150;
 
     assert.strictEqual(data.toString(), expectedMessage.data);
-    assert(actualWait <= waitTime + acceptableLatency);
+    assert.isAtMost(
+      actualWait,
+      waitTime + acceptableLatency,
+      'read is within acceptable latency'
+    );
+  });
+
+  it('should resume publish', async () => {
+    const [subscription] = await pubsub
+      .topic(topicNameTwo)
+      .subscription(subscriptionNameFive)
+      .get({autoCreate: true});
+
+    execSync(
+      `${commandFor('resumePublish')} ${topicNameTwo} "${
+        expectedMessage.data
+      }" my-key`
+    );
+    const message = await _pullOneMessage(subscription);
+    assert.strictEqual(message.orderingKey, 'my-key');
+    assert.strictEqual(message.data.toString(), expectedMessage.data);
   });
 
   it('should publish with retry settings', async () => {
     const [subscription] = await pubsub
-      .topic(topicNameOne)
+      .topic(topicNameThree)
       .subscription(subscriptionNameFour)
       .get({autoCreate: true});
     execSync(
       `${commandFor(
         'publishWithRetrySettings'
-      )} ${projectId} ${topicNameOne} "${expectedMessage.data}"`
+      )} ${projectId} ${topicNameThree} "${expectedMessage.data}"`
     );
     const receivedMessage = await _pullOneMessage(subscription);
     assert.strictEqual(receivedMessage.data.toString(), expectedMessage.data);
   });
 
   it('should set the IAM policy for a topic', async () => {
-    execSync(`${commandFor('setTopicPolicy')} ${topicNameOne}`);
-    const results = await pubsub.topic(topicNameOne).iam.getPolicy();
+    execSync(`${commandFor('setTopicPolicy')} ${topicNameThree}`);
+    const results = await pubsub.topic(topicNameThree).iam.getPolicy();
     const [policy] = results;
     assert.deepStrictEqual(policy.bindings, [
       {
-        role: `roles/pubsub.editor`,
-        members: [`group:cloud-logs@google.com`],
+        role: 'roles/pubsub.editor',
+        members: ['group:cloud-logs@google.com'],
         condition: null,
       },
       {
-        role: `roles/pubsub.viewer`,
-        members: [`allUsers`],
+        role: 'roles/pubsub.viewer',
+        members: ['allUsers'],
         condition: null,
       },
     ]);
   });
 
   it('should get the IAM policy for a topic', async () => {
-    const [policy] = await pubsub.topic(topicNameOne).iam.getPolicy();
-    const output = execSync(`${commandFor('getTopicPolicy')} ${topicNameOne}`);
+    const [policy] = await pubsub.topic(topicNameThree).iam.getPolicy();
+    const output = execSync(
+      `${commandFor('getTopicPolicy')} ${topicNameThree}`
+    );
     assert.include(
       output,
       `Policy for topic: ${JSON.stringify(policy.bindings)}.`
@@ -224,15 +246,15 @@ describe('topics', () => {
 
   it('should test permissions for a topic', async () => {
     const output = execSync(
-      `${commandFor('testTopicPermissions')} ${topicNameOne}`
+      `${commandFor('testTopicPermissions')} ${topicNameThree}`
     );
     assert.match(output, /Tested permissions for topic/);
   });
 
   it('should delete a topic', async () => {
-    const output = execSync(`${commandFor('deleteTopic')} ${topicNameOne}`);
-    assert.include(output, `Topic ${topicNameOne} deleted.`);
+    const output = execSync(`${commandFor('deleteTopic')} ${topicNameThree}`);
+    assert.include(output, `Topic ${topicNameThree} deleted.`);
     const [topics] = await pubsub.getTopics();
-    assert(topics.every(s => s.name !== fullTopicNameOne));
+    assert(topics.every(s => s.name !== fullTopicNameThree));
   });
 });

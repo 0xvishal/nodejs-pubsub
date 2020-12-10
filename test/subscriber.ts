@@ -15,13 +15,19 @@
  */
 
 import * as assert from 'assert';
-import {describe, it} from 'mocha';
+import {describe, it, before, beforeEach, afterEach} from 'mocha';
 import {EventEmitter} from 'events';
 import {common as protobuf} from 'protobufjs';
 import * as proxyquire from 'proxyquire';
 import * as sinon from 'sinon';
 import {PassThrough} from 'stream';
 import * as uuid from 'uuid';
+import {
+  SimpleSpanProcessor,
+  BasicTracerProvider,
+  InMemorySpanExporter,
+} from '@opentelemetry/tracing';
+import * as opentelemetry from '@opentelemetry/api';
 
 import {HistogramOptions} from '../src/histogram';
 import {FlowControlOptions} from '../src/lease-manager';
@@ -63,7 +69,9 @@ class FakeHistogram {
     const key = options ? 'histogram' : 'latencies';
     stubs.set(key, this);
   }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   add(seconds: number): void {}
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   percentile(percentile: number): number {
     return 10;
   }
@@ -76,21 +84,26 @@ class FakeLeaseManager extends EventEmitter {
     this.options = options;
     stubs.set('inventory', this);
   }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   add(message: s.Message): void {}
   clear(): void {}
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   remove(message: s.Message): void {}
 }
 
 class FakeQueue {
   options: BatchOptions;
   numPendingRequests = 0;
+  numInFlightRequests = 0;
   maxMilliseconds = 100;
   constructor(sub: s.Subscriber, options: BatchOptions) {
     this.options = options;
   }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   add(message: s.Message, deadline?: number): void {}
   async flush(): Promise<void> {}
   async onFlush(): Promise<void> {}
+  async onDrain(): Promise<void> {}
 }
 
 class FakeAckQueue extends FakeQueue {
@@ -114,6 +127,7 @@ class FakeMessageStream extends PassThrough {
     this.options = options;
     stubs.set('messageStream', this);
   }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   destroy(error?: Error): void {}
 }
 
@@ -183,6 +197,14 @@ describe('Subscriber', () => {
       assert.strictEqual(subscriber.ackDeadline, 10);
     });
 
+    it('should default maxMessages to 1000', () => {
+      assert.strictEqual(subscriber.maxMessages, 1000);
+    });
+
+    it('should default maxBytes to 100MB', () => {
+      assert.strictEqual(subscriber.maxBytes, 100 * 1024 * 1024);
+    });
+
     it('should set isOpen to false', () => {
       const s = new Subscriber(subscription);
       assert.strictEqual(s.isOpen, false);
@@ -191,7 +213,7 @@ describe('Subscriber', () => {
     it('should set any options passed in', () => {
       const stub = sandbox.stub(Subscriber.prototype, 'setOptions');
       const fakeOptions = {};
-      const sub = new Subscriber(subscription, fakeOptions);
+      new Subscriber(subscription, fakeOptions);
 
       const [options] = stub.lastCall.args;
       assert.strictEqual(options, fakeOptions);
@@ -203,10 +225,7 @@ describe('Subscriber', () => {
       const latencies: FakeHistogram = stubs.get('latencies');
       const fakeLatency = 234;
 
-      sandbox
-        .stub(latencies, 'percentile')
-        .withArgs(99)
-        .returns(fakeLatency);
+      sandbox.stub(latencies, 'percentile').withArgs(99).returns(fakeLatency);
 
       const maxMilliseconds = stubs.get('modAckQueue').maxMilliseconds;
       const expectedLatency = fakeLatency * 1000 + maxMilliseconds;
@@ -255,10 +274,7 @@ describe('Subscriber', () => {
 
       const fakeDeadline = 312123;
 
-      sandbox
-        .stub(histogram, 'percentile')
-        .withArgs(99)
-        .returns(fakeDeadline);
+      sandbox.stub(histogram, 'percentile').withArgs(99).returns(fakeDeadline);
 
       subscriber.ack(message);
 
@@ -269,11 +285,16 @@ describe('Subscriber', () => {
     it('should not update the deadline if user specified', () => {
       const histogram: FakeHistogram = stubs.get('histogram');
       const ackDeadline = 543;
+      const maxMessages = 20;
+      const maxBytes = 20000;
 
       sandbox.stub(histogram, 'add').throws();
       sandbox.stub(histogram, 'percentile').throws();
 
-      subscriber.setOptions({ackDeadline});
+      subscriber.setOptions({
+        ackDeadline,
+        flowControl: {maxMessages: maxMessages, maxBytes: maxBytes},
+      });
       subscriber.ack(message);
 
       assert.strictEqual(subscriber.ackDeadline, ackDeadline);
@@ -386,6 +407,7 @@ describe('Subscriber', () => {
 
         sandbox.stub(ackQueue, 'flush').rejects();
         sandbox.stub(ackQueue, 'onFlush').rejects();
+        sandbox.stub(ackQueue, 'onDrain').rejects();
 
         const modAckQueue: FakeModAckQueue = stubs.get('modAckQueue');
 
@@ -393,6 +415,20 @@ describe('Subscriber', () => {
         sandbox.stub(modAckQueue, 'onFlush').rejects();
 
         return subscriber.close();
+      });
+
+      it('should wait for in-flight messages to drain', async () => {
+        const ackQueue: FakeAckQueue = stubs.get('ackQueue');
+        const modAckQueue: FakeModAckQueue = stubs.get('modAckQueue');
+        const ackOnDrain = sandbox.stub(ackQueue, 'onDrain').resolves();
+        const modAckOnDrain = sandbox.stub(modAckQueue, 'onDrain').resolves();
+
+        ackQueue.numInFlightRequests = 1;
+        modAckQueue.numInFlightRequests = 1;
+        await subscriber.close();
+
+        assert.strictEqual(ackOnDrain.callCount, 1);
+        assert.strictEqual(modAckOnDrain.callCount, 1);
       });
     });
   });
@@ -598,6 +634,103 @@ describe('Subscriber', () => {
       const stream: FakeMessageStream = stubs.get('messageStream');
 
       assert.strictEqual(stream.options.maxStreams, maxMessages);
+    });
+  });
+
+  describe('OpenTelemetry tracing', () => {
+    let tracingSubscriber: s.Subscriber = {} as s.Subscriber;
+    const enableTracing: s.SubscriberOptions = {
+      enableOpenTelemetryTracing: true,
+    };
+    const disableTracing: s.SubscriberOptions = {
+      enableOpenTelemetryTracing: false,
+    };
+
+    beforeEach(() => {
+      // Pre-define _tracing to gain access to the private field after subscriber init
+      tracingSubscriber['_tracing'] = undefined;
+    });
+
+    it('should not instantiate a tracer when tracing is disabled', () => {
+      tracingSubscriber = new Subscriber(subscription);
+      assert.strictEqual(tracingSubscriber['_tracing'], undefined);
+    });
+
+    it('should instantiate a tracer when tracing is enabled through constructor', () => {
+      tracingSubscriber = new Subscriber(subscription, enableTracing);
+      assert.ok(tracingSubscriber['_tracing']);
+    });
+
+    it('should instantiate a tracer when tracing is enabled through setOptions', () => {
+      tracingSubscriber = new Subscriber(subscription);
+      tracingSubscriber.setOptions(enableTracing);
+      assert.ok(tracingSubscriber['_tracing']);
+    });
+
+    it('should disable tracing when tracing is disabled through setOptions', () => {
+      tracingSubscriber = new Subscriber(subscription, enableTracing);
+      tracingSubscriber.setOptions(disableTracing);
+      assert.strictEqual(tracingSubscriber['_tracing'], undefined);
+    });
+
+    it('exports a span once it is created', () => {
+      tracingSubscriber = new Subscriber(subscription, enableTracing);
+
+      // Setup trace exporting
+      const provider: BasicTracerProvider = new BasicTracerProvider();
+      const exporter: InMemorySpanExporter = new InMemorySpanExporter();
+      provider.addSpanProcessor(new SimpleSpanProcessor(exporter));
+      provider.register();
+      opentelemetry.trace.setGlobalTracerProvider(provider);
+
+      // Construct mock of received message with span context
+      const parentSpanContext: opentelemetry.SpanContext = {
+        traceId: 'd4cda95b652f4a1592b449d5929fda1b',
+        spanId: '6e0c63257de34c92',
+        traceFlags: opentelemetry.TraceFlags.SAMPLED,
+      };
+      const messageWithSpanContext = {
+        ackId: uuid.v4(),
+        message: {
+          attributes: {
+            googclient_OpenTelemetrySpanContext: JSON.stringify(
+              parentSpanContext
+            ),
+          },
+          data: Buffer.from('Hello, world!'),
+          messageId: uuid.v4(),
+          orderingKey: 'ordering-key',
+          publishTime: {seconds: 12, nanos: 32},
+        },
+      };
+      const pullResponse: s.PullResponse = {
+        receivedMessages: [messageWithSpanContext],
+      };
+
+      // Receive message and assert that it was exported
+      const stream: FakeMessageStream = stubs.get('messageStream');
+      stream.emit('data', pullResponse);
+      assert.ok(exporter.getFinishedSpans());
+    });
+
+    it('does not export a span when a span context is not present on message', () => {
+      tracingSubscriber = new Subscriber(subscription, enableTracing);
+
+      // Setup trace exporting
+      const provider: BasicTracerProvider = new BasicTracerProvider();
+      const exporter: InMemorySpanExporter = new InMemorySpanExporter();
+      provider.addSpanProcessor(new SimpleSpanProcessor(exporter));
+      provider.register();
+      opentelemetry.trace.setGlobalTracerProvider(provider);
+
+      const pullResponse: s.PullResponse = {
+        receivedMessages: [RECEIVED_MESSAGE],
+      };
+
+      // Receive message and assert that it was exported
+      const stream: FakeMessageStream = stubs.get('messageStream');
+      stream.emit('data', pullResponse);
+      assert.strictEqual(exporter.getFinishedSpans().length, 0);
     });
   });
 

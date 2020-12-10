@@ -14,19 +14,19 @@
 
 import * as pfy from '@google-cloud/promisify';
 import * as assert from 'assert';
-import {describe, it} from 'mocha';
-import {CallOptions} from 'google-gax';
-import {ServiceError} from '@grpc/grpc-js';
+import {describe, it, before, beforeEach, afterEach} from 'mocha';
+import {CallOptions, ServiceError} from 'google-gax';
 import * as proxyquire from 'proxyquire';
 import * as sinon from 'sinon';
 
-import {google} from '../proto/pubsub';
+import {google} from '../protos/protos';
 import {ExistsCallback, RequestCallback, RequestConfig} from '../src/pubsub';
 import {
   CreateSubscriptionOptions,
   Subscription,
   SubscriptionOptions,
 } from '../src/subscription';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {GetTopicMetadataCallback, Topic} from '../src/topic';
 import * as util from '../src/util';
 
@@ -84,18 +84,17 @@ const fakePaginator = {
 };
 
 describe('Topic', () => {
-  // tslint:disable-next-line no-any variable-name
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let Topic: any;
-  // tslint:disable-next-line no-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let topic: typeof Topic;
 
   const PROJECT_ID = 'test-project';
   const TOPIC_NAME = 'projects/' + PROJECT_ID + '/topics/test-topic';
   const TOPIC_UNFORMATTED_NAME = TOPIC_NAME.split('/').pop();
 
-  // tslint:disable-next-line no-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const PUBSUB: any = {
-    Promise: {},
     projectId: PROJECT_ID,
     createTopic: util.noop,
     request: util.noop,
@@ -130,10 +129,6 @@ describe('Topic', () => {
 
     it('should promisify all the things', () => {
       assert(promisified);
-    });
-
-    it('should localize pubsub.Promise', () => {
-      assert.strictEqual(topic.Promise, PUBSUB.Promise);
     });
 
     it('should format the name', () => {
@@ -264,7 +259,7 @@ describe('Topic', () => {
 
       topic.getMetadata = (gaxOpts: CallOptions) => {
         assert.strictEqual(gaxOpts, options);
-        // tslint:disable-next-line no-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         assert.strictEqual((gaxOpts as any).autoCreate, undefined);
         done();
       };
@@ -559,13 +554,13 @@ describe('Topic', () => {
       const apiResponse_ = {};
 
       topic.request =
-        // tslint:disable-next-line:no-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (config: RequestConfig, callback: (...args: any[]) => void) => {
           callback(err_, subs_, nextQuery_, apiResponse_);
         };
 
       topic.getSubscriptions(
-        // tslint:disable-next-line:no-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (err: Error, subs: boolean, nextQuery: any, apiResponse: any) => {
           assert.strictEqual(err, err_);
           assert.deepStrictEqual(subs, subs_);

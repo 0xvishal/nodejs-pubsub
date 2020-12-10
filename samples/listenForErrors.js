@@ -27,7 +27,7 @@
 //   description: Listens to messages and errors for a subscription.
 //   usage: node listenForErrors.js <subscription-name> [timeout-in-seconds]
 
-function main(subscriptionName = 'YOUR_SUBSCRIPTION_NAME', timeout = 10) {
+async function main(subscriptionName = 'YOUR_SUBSCRIPTION_NAME', timeout = 10) {
   timeout = Number(timeout);
 
   // [START pubsub_subscriber_error_listener]
@@ -43,12 +43,12 @@ function main(subscriptionName = 'YOUR_SUBSCRIPTION_NAME', timeout = 10) {
   // Creates a client; cache this for further use
   const pubSubClient = new PubSub();
 
-  async function listenForErrors() {
+  function listenForErrors() {
     // References an existing subscription
     const subscription = pubSubClient.subscription(subscriptionName);
 
     // Create an event handler to handle messages
-    const messageHandler = function(message) {
+    const messageHandler = function (message) {
       // Do something with the message
       console.log(`Message: ${message}`);
 
@@ -57,9 +57,10 @@ function main(subscriptionName = 'YOUR_SUBSCRIPTION_NAME', timeout = 10) {
     };
 
     // Create an event handler to handle errors
-    const errorHandler = function(error) {
+    const errorHandler = function (error) {
       // Do something with the error
       console.error(`ERROR: ${error}`);
+      throw error;
     };
 
     // Listen for new messages/errors until timeout is hit
@@ -72,8 +73,11 @@ function main(subscriptionName = 'YOUR_SUBSCRIPTION_NAME', timeout = 10) {
     }, timeout * 1000);
   }
 
-  listenForErrors().catch(console.error);
+  listenForErrors();
   // [END pubsub_subscriber_error_listener]
 }
 
-main(...process.argv.slice(2));
+main(...process.argv.slice(2)).catch(e => {
+  console.error(e);
+  process.exitCode = -1;
+});

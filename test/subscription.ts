@@ -14,9 +14,9 @@
 
 import * as pfy from '@google-cloud/promisify';
 import * as assert from 'assert';
-import {describe, it} from 'mocha';
+import {describe, it, before, beforeEach, afterEach} from 'mocha';
 import {EventEmitter} from 'events';
-import {ServiceError} from '@grpc/grpc-js';
+import {ServiceError} from 'google-gax';
 import * as proxyquire from 'proxyquire';
 import * as sinon from 'sinon';
 
@@ -43,6 +43,7 @@ const fakePromisify = Object.assign({}, pfy, {
 class FakeIAM {
   calledWith_: IArguments;
   constructor() {
+    // eslint-disable-next-line prefer-rest-params
     this.calledWith_ = arguments;
   }
 }
@@ -51,6 +52,7 @@ class FakeSnapshot {
   calledWith_: IArguments;
   static formatName_?: Function;
   constructor() {
+    // eslint-disable-next-line prefer-rest-params
     this.calledWith_ = arguments;
   }
 }
@@ -62,6 +64,7 @@ class FakeSubscriber extends EventEmitter {
   isOpen = false;
   constructor() {
     super();
+    // eslint-disable-next-line prefer-rest-params
     this.calledWith_ = arguments;
     subscriber = this;
   }
@@ -71,6 +74,7 @@ class FakeSubscriber extends EventEmitter {
   async close(): Promise<void> {
     this.isOpen = false;
   }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   setOptions(options: SubscriberOptions): void {}
 }
 
@@ -85,7 +89,6 @@ describe('Subscription', () => {
 
   const PUBSUB = ({
     projectId: PROJECT_ID,
-    Promise: {},
     request: util.noop,
     createSubscription: util.noop,
   } as {}) as PubSub;
@@ -126,7 +129,7 @@ describe('Subscription', () => {
       };
 
       const subscription = new Subscription(PUBSUB, SUB_NAME);
-      // tslint:disable-next-line no-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (subscription as any).request(assert.ifError);
     });
 
@@ -423,7 +426,7 @@ describe('Subscription', () => {
 
     it('should throw an error if a snapshot name is not found', () => {
       assert.throws(() => {
-        // tslint:disable-next-line no-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (subscription as any).createSnapshot();
       }, /A name is required to create a snapshot\./);
     });
@@ -568,7 +571,7 @@ describe('Subscription', () => {
       });
 
       it('should not remove all the listeners', done => {
-        // tslint:disable-next-line no-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (subscription as any).removeAllListeners = () => {
           done(new Error('Should not be called.'));
         };
@@ -632,7 +635,7 @@ describe('Subscription', () => {
       };
       sandbox.stub(subscription, 'getMetadata').callsFake(gaxOpts => {
         assert.strictEqual(gaxOpts, options);
-        // tslint:disable-next-line no-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         assert.strictEqual((gaxOpts as typeof options).autoCreate, undefined);
         done();
       });
@@ -857,7 +860,7 @@ describe('Subscription', () => {
 
     it('should throw if a name or date is not provided', () => {
       assert.throws(() => {
-        // tslint:disable-next-line no-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (subscription as any).seek();
       }, /Either a snapshot name or Date is needed to seek to\./);
     });
@@ -884,7 +887,13 @@ describe('Subscription', () => {
 
     it('should optionally accept a Date object', done => {
       const date = new Date();
-      const reqOpts = {subscription: SUB_FULL_NAME, time: date};
+      const reqOpts = {
+        subscription: SUB_FULL_NAME,
+        time: {
+          seconds: Math.floor(date.getTime() / 1000),
+          nanos: Math.floor(date.getTime() % 1000) * 1000,
+        },
+      };
       subscription.request = (config: RequestConfig) => {
         assert.deepStrictEqual(config.reqOpts, reqOpts);
         done();
@@ -910,8 +919,11 @@ describe('Subscription', () => {
       pushEndpoint: 'http://noop.com/push',
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const subClass = subby.Subscription as any;
+
     beforeEach(() => {
-      Subscription.formatMetadata_ = (metadata: subby.SubscriptionMetadata) => {
+      subClass.formatMetadata_ = (metadata: {}) => {
         return Object.assign({}, metadata);
       };
     });
@@ -959,7 +971,6 @@ describe('Subscription', () => {
         assert.strictEqual(config.gaxOpts, gaxOpts);
         done();
       };
-
       subscription.setMetadata(METADATA, gaxOpts, done);
     });
   });
@@ -968,9 +979,7 @@ describe('Subscription', () => {
     it('should pass the options to the subscriber', () => {
       const options = {};
       const stub = sandbox.stub(subscriber, 'setOptions').withArgs(options);
-
       subscription.setOptions(options);
-
       assert.strictEqual(stub.callCount, 1);
     });
   });
@@ -979,8 +988,8 @@ describe('Subscription', () => {
     const SNAPSHOT_NAME = 'a';
 
     it('should call through to pubsub.snapshot', done => {
-      // tslint:disable-next-line no-any
-      (PUBSUB as any).snapshot = function(name: string) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (PUBSUB as any).snapshot = function (name: string) {
         assert.strictEqual(this, subscription);
         assert.strictEqual(name, SNAPSHOT_NAME);
         done();

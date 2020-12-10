@@ -15,8 +15,8 @@
  */
 
 import * as assert from 'assert';
-import {describe, it} from 'mocha';
-import {Metadata, ServiceError} from '@grpc/grpc-js';
+import {describe, it, before, beforeEach, afterEach} from 'mocha';
+import {grpc} from 'google-gax';
 import * as proxyquire from 'proxyquire';
 import * as sinon from 'sinon';
 import {Duplex, PassThrough} from 'stream';
@@ -69,7 +69,7 @@ class FakePassThrough extends PassThrough {
     this.options = options;
   }
   destroy(err?: Error): void {
-    if (super.destroy) {
+    if (typeof super.destroy === 'function') {
       return super.destroy(err);
     }
     destroy(this, err);
@@ -87,7 +87,7 @@ class FakeGrpcStream extends Duplex {
     const status = {
       code: 1,
       details: 'Canceled.',
-      metadata: new Metadata(),
+      metadata: new grpc.Metadata(),
     };
 
     process.nextTick(() => {
@@ -96,7 +96,7 @@ class FakeGrpcStream extends Duplex {
     });
   }
   destroy(err?: Error): void {
-    if (super.destroy) {
+    if (typeof super.destroy === 'function') {
       return super.destroy(err);
     }
     destroy(this, err);
@@ -104,13 +104,19 @@ class FakeGrpcStream extends Duplex {
   _write(chunk: object, encoding: string, callback: Function): void {
     callback();
   }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _read(size: number): void {}
 }
 
 class FakeGaxClient {
   client: FakeGrpcClient;
+  subscriberStub: Promise<FakeGrpcClient>;
   constructor() {
     this.client = new FakeGrpcClient();
+    this.subscriberStub = this.getSubscriberStub();
+  }
+  initialize() {
+    return this.subscriberStub;
   }
   async getSubscriberStub(): Promise<FakeGrpcClient> {
     return this.client;
@@ -134,10 +140,14 @@ class FakeGrpcClient {
 class FakeSubscriber {
   name: string;
   ackDeadline: number;
+  maxMessages: number;
+  maxBytes: number;
   client: FakeGaxClient;
   constructor(client: FakeGaxClient) {
     this.name = uuid.v4();
     this.ackDeadline = Math.floor(Math.random() * 600);
+    this.maxMessages = 20;
+    this.maxBytes = 4000;
     this.client = client;
   }
   async getClient(): Promise<FakeGaxClient> {
@@ -280,10 +290,7 @@ describe('MessageStream', () => {
 
         it('should respect the timeout option', done => {
           const timeout = 12345;
-          const expectedDeadline = now + timeout;
-
           messageStream = new MessageStream(subscriber, {timeout});
-
           setImmediate(() => {
             assert.strictEqual(client.deadline, now + timeout);
             done();
@@ -295,13 +302,7 @@ describe('MessageStream', () => {
 
   describe('destroy', () => {
     it('should noop if already destroyed', done => {
-      const stub = sandbox
-        .stub(FakePassThrough.prototype, 'destroy')
-        .callsFake(function(this: Duplex) {
-          if (this === messageStream) {
-            done();
-          }
-        });
+      messageStream.on('close', done);
 
       messageStream.destroy();
       messageStream.destroy();
@@ -341,36 +342,6 @@ describe('MessageStream', () => {
 
       stubs.forEach(stub => {
         assert.strictEqual(stub.callCount, 1);
-      });
-    });
-
-    describe('without native destroy', () => {
-      let destroy: (err?: Error) => void;
-
-      before(() => {
-        destroy = FakePassThrough.prototype.destroy;
-        // tslint:disable-next-line no-any
-        FakePassThrough.prototype.destroy = false as any;
-      });
-
-      after(() => {
-        FakePassThrough.prototype.destroy = destroy;
-      });
-
-      it('should emit close', done => {
-        messageStream.on('close', done);
-        messageStream.destroy();
-      });
-
-      it('should emit an error if present', done => {
-        const fakeError = new Error('err');
-
-        messageStream.on('error', err => {
-          assert.strictEqual(err, fakeError);
-          done();
-        });
-
-        messageStream.destroy(fakeError);
       });
     });
   });
@@ -423,9 +394,9 @@ describe('MessageStream', () => {
         const stub = sandbox.stub(client, 'waitForReady');
         const ms = new MessageStream(subscriber);
         const fakeError = new Error('err');
-        const expectedMessage = `Failed to connect to channel. Reason: err`;
+        const expectedMessage = 'Failed to connect to channel. Reason: err';
 
-        ms.on('error', (err: ServiceError) => {
+        ms.on('error', (err: grpc.ServiceError) => {
           assert.strictEqual(err.code, 2);
           assert.strictEqual(err.message, expectedMessage);
           assert.strictEqual(ms.destroyed, true);
@@ -443,7 +414,7 @@ describe('MessageStream', () => {
         const ms = new MessageStream(subscriber);
         const fakeError = new Error('Failed to connect before the deadline');
 
-        ms.on('error', (err: ServiceError) => {
+        ms.on('error', (err: grpc.ServiceError) => {
           assert.strictEqual(err.code, 4);
           done();
         });
@@ -529,7 +500,7 @@ describe('MessageStream', () => {
           details: 'Err',
         };
 
-        messageStream.on('error', (err: ServiceError) => {
+        messageStream.on('error', (err: grpc.ServiceError) => {
           assert(err instanceof Error);
           assert.strictEqual(err.code, fakeStatus.code);
           assert.strictEqual(err.message, fakeStatus.details);

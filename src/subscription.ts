@@ -20,11 +20,13 @@ import * as extend from 'extend';
 import {CallOptions} from 'google-gax';
 import snakeCase = require('lodash.snakecase');
 
-import {google} from '../proto/pubsub';
+import {google} from '../protos/protos';
 
 import {IAM} from './iam';
 import {FlowControlOptions} from './lease-manager';
 import {
+  DetachedCallback,
+  DetachedResponse,
   EmptyCallback,
   EmptyResponse,
   ExistsCallback,
@@ -43,10 +45,8 @@ import {
 } from './snapshot';
 import {Subscriber, SubscriberOptions} from './subscriber';
 import {Topic} from './topic';
-import {noop} from './util';
 
 export type PushConfig = google.pubsub.v1.IPushConfig;
-
 export type OidcToken = google.pubsub.v1.PushConfig.IOidcToken;
 
 export type SubscriptionMetadata = {
@@ -84,6 +84,9 @@ export type GetSubscriptionMetadataResponse = MetadataResponse;
 
 export type SetSubscriptionMetadataCallback = MetadataCallback;
 export type SetSubscriptionMetadataResponse = MetadataResponse;
+
+export type DetachSubscriptionCallback = EmptyCallback;
+export type DetachSubscriptionResponse = EmptyResponse;
 
 /**
  * @typedef {object} ExpirationPolicy
@@ -411,7 +414,7 @@ export class Subscription extends EventEmitter {
    *
    * @param {string} name Name of the snapshot.
    * @param {object} [gaxOpts] Request configuration options, outlined
-   *     here: https://googleapis.github.io/gax-nodejs/CallSettings.html.
+   *     here: https://googleapis.github.io/gax-nodejs/interfaces/CallOptions.html.
    * @param {CreateSnapshotCallback} [callback] Callback function.
    * @returns {Promise<CreateSnapshotResponse>}
    *
@@ -482,7 +485,7 @@ export class Subscription extends EventEmitter {
    * @see [Subscriptions: delete API Documentation]{@link https://cloud.google.com/pubsub/docs/reference/rest/v1/projects.subscriptions/delete}
    *
    * @param {object} [gaxOpts] Request configuration options, outlined
-   *     here: https://googleapis.github.io/gax-nodejs/CallSettings.html.
+   *     here: https://googleapis.github.io/gax-nodejs/interfaces/CallOptions.html.
    * @param {function} [callback] The callback function.
    * @param {?error} callback.err An error returned while making this
    *     request.
@@ -528,6 +531,49 @@ export class Subscription extends EventEmitter {
       },
       callback!
     );
+  }
+
+  detached(): Promise<DetachedResponse>;
+  detached(callback: DetachedCallback): void;
+  /**
+   * @typedef {array} SubscriptionDetachedResponse
+   * @property {boolean} 0 Whether the subscription is detached.
+   */
+  /**
+   * @callback SubscriptionDetachedCallback
+   * @param {?Error} err Request error, if any.
+   * @param {boolean} exists Whether the subscription is detached.
+   */
+  /**
+   * Check if a subscription is detached.
+   *
+   * @param {SubscriptionDetachedCallback} [callback] Callback function.
+   * @returns {Promise<SubscriptionDetachedResponse>}
+   *
+   * @example
+   * const {PubSub} = require('@google-cloud/pubsub');
+   * const pubsub = new PubSub();
+   *
+   * const topic = pubsub.topic('my-topic');
+   * const subscription = topic.subscription('my-subscription');
+   *
+   * subscription.detached((err, exists) => {});
+   *
+   * //-
+   * // If the callback is omitted, we'll return a Promise.
+   * //-
+   * subscription.detached().then((data) => {
+   *   const detached = data[0];
+   * });
+   */
+  detached(callback?: DetachedCallback): void | Promise<DetachedResponse> {
+    this.getMetadata((err, metadata) => {
+      if (err) {
+        callback!(err);
+      } else {
+        callback!(null, metadata!.detached);
+      }
+    });
   }
 
   exists(): Promise<ExistsResponse>;
@@ -596,7 +642,7 @@ export class Subscription extends EventEmitter {
    * Get a subscription if it exists.
    *
    * @param {object} [gaxOpts] Request configuration options, outlined
-   *     here: https://googleapis.github.io/gax-nodejs/CallSettings.html.
+   *     here: https://googleapis.github.io/gax-nodejs/interfaces/CallOptions.html.
    * @param {boolean} [gaxOpts.autoCreate=false] Automatically create the
    *     subscription if it does not already exist.
    * @param {GetSubscriptionCallback} [callback] Callback function.
@@ -665,7 +711,7 @@ export class Subscription extends EventEmitter {
    * Fetches the subscriptions metadata.
    *
    * @param {object} [gaxOpts] Request configuration options, outlined
-   *     here: https://googleapis.github.io/gax-nodejs/CallSettings.html.
+   *     here: https://googleapis.github.io/gax-nodejs/interfaces/CallOptions.html.
    * @param {GetSubscriptionMetadataCallback} [callback] Callback function.
    * @returns {Promise<GetSubscriptionMetadataResponse>}
    *
@@ -747,7 +793,7 @@ export class Subscription extends EventEmitter {
    *     request for every pushed message. This object should have the same
    *     structure as [OidcToken]{@link google.pubsub.v1.OidcToken}
    * @param {object} [gaxOpts] Request configuration options, outlined
-   *     here: https://googleapis.github.io/gax-nodejs/CallSettings.html.
+   *     here: https://googleapis.github.io/gax-nodejs/interfaces/CallOptions.html.
    * @param {ModifyPushConfigCallback} [callback] Callback function.
    * @returns {Promise<ModifyPushConfigResponse>}
    *
@@ -855,7 +901,7 @@ export class Subscription extends EventEmitter {
    * @param {string|date} snapshot The point to seek to. This will accept the
    *     name of the snapshot or a Date object.
    * @param {object} [gaxOpts] Request configuration options, outlined
-   *     here: https://googleapis.github.io/gax-nodejs/CallSettings.html.
+   *     here: https://googleapis.github.io/gax-nodejs/interfaces/CallOptions.html.
    * @param {SeekCallback} [callback] Callback function.
    * @returns {Promise<SeekResponse>}
    *
@@ -892,7 +938,11 @@ export class Subscription extends EventEmitter {
     if (typeof snapshot === 'string') {
       reqOpts.snapshot = Snapshot.formatName_(this.pubsub.projectId, snapshot);
     } else if (Object.prototype.toString.call(snapshot) === '[object Date]') {
-      reqOpts.time = snapshot as google.protobuf.ITimestamp;
+      const dateMillis = (snapshot as Date).getTime();
+      reqOpts.time = {
+        seconds: Math.floor(dateMillis / 1000),
+        nanos: Math.floor(dateMillis % 1000) * 1000,
+      };
     } else {
       throw new Error('Either a snapshot name or Date is needed to seek to.');
     }
@@ -935,7 +985,7 @@ export class Subscription extends EventEmitter {
    *
    * @param {object} metadata The subscription metadata.
    * @param {object} [gaxOpts] Request configuration options, outlined
-   *     here: https://googleapis.github.io/gax-nodejs/CallSettings.html.
+   *     here: https://googleapis.github.io/gax-nodejs/interfaces/CallOptions.html.
    * @param {SetSubscriptionMetadataCallback} [callback] Callback function.
    * @returns {Promise<SetSubscriptionMetadataResponse>}
    *
@@ -1020,7 +1070,7 @@ export class Subscription extends EventEmitter {
       }
     });
 
-    this.on('removeListener', event => {
+    this.on('removeListener', () => {
       if (this.isOpen && this.listenerCount('message') === 0) {
         this._subscriber.close();
       }

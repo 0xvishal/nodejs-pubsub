@@ -19,7 +19,7 @@
         define(["protobufjs/minimal"], factory);
 
     /* CommonJS */ else if (typeof require === 'function' && typeof module === 'object' && module && module.exports)
-        module.exports = factory(require("protobufjs/minimal"));
+        module.exports = factory(require("google-gax").protobufMinimal);
 
 })(this, function($protobuf) {
     "use strict";
@@ -28,7 +28,7 @@
     var $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.util;
     
     // Exported root namespace
-    var $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
+    var $root = $protobuf.roots._google_cloud_pubsub_protos || ($protobuf.roots._google_cloud_pubsub_protos = {});
     
     $root.google = (function() {
     
@@ -353,6 +353,39 @@
                      * @variation 2
                      */
     
+                    /**
+                     * Callback as used by {@link google.pubsub.v1.Publisher#detachSubscription}.
+                     * @memberof google.pubsub.v1.Publisher
+                     * @typedef DetachSubscriptionCallback
+                     * @type {function}
+                     * @param {Error|null} error Error, if any
+                     * @param {google.pubsub.v1.DetachSubscriptionResponse} [response] DetachSubscriptionResponse
+                     */
+    
+                    /**
+                     * Calls DetachSubscription.
+                     * @function detachSubscription
+                     * @memberof google.pubsub.v1.Publisher
+                     * @instance
+                     * @param {google.pubsub.v1.IDetachSubscriptionRequest} request DetachSubscriptionRequest message or plain object
+                     * @param {google.pubsub.v1.Publisher.DetachSubscriptionCallback} callback Node-style callback called with the error, if any, and DetachSubscriptionResponse
+                     * @returns {undefined}
+                     * @variation 1
+                     */
+                    Object.defineProperty(Publisher.prototype.detachSubscription = function detachSubscription(request, callback) {
+                        return this.rpcCall(detachSubscription, $root.google.pubsub.v1.DetachSubscriptionRequest, $root.google.pubsub.v1.DetachSubscriptionResponse, request, callback);
+                    }, "name", { value: "DetachSubscription" });
+    
+                    /**
+                     * Calls DetachSubscription.
+                     * @function detachSubscription
+                     * @memberof google.pubsub.v1.Publisher
+                     * @instance
+                     * @param {google.pubsub.v1.IDetachSubscriptionRequest} request DetachSubscriptionRequest message or plain object
+                     * @returns {Promise<google.pubsub.v1.DetachSubscriptionResponse>} Promise
+                     * @variation 2
+                     */
+    
                     return Publisher;
                 })();
     
@@ -643,14 +676,14 @@
                     Topic.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.name != null && message.hasOwnProperty("name"))
+                        if (message.name != null && Object.hasOwnProperty.call(message, "name"))
                             writer.uint32(/* id 1, wireType 2 =*/10).string(message.name);
-                        if (message.labels != null && message.hasOwnProperty("labels"))
+                        if (message.labels != null && Object.hasOwnProperty.call(message, "labels"))
                             for (var keys = Object.keys(message.labels), i = 0; i < keys.length; ++i)
                                 writer.uint32(/* id 2, wireType 2 =*/18).fork().uint32(/* id 1, wireType 2 =*/10).string(keys[i]).uint32(/* id 2, wireType 2 =*/18).string(message.labels[keys[i]]).ldelim();
-                        if (message.messageStoragePolicy != null && message.hasOwnProperty("messageStoragePolicy"))
+                        if (message.messageStoragePolicy != null && Object.hasOwnProperty.call(message, "messageStoragePolicy"))
                             $root.google.pubsub.v1.MessageStoragePolicy.encode(message.messageStoragePolicy, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
-                        if (message.kmsKeyName != null && message.hasOwnProperty("kmsKeyName"))
+                        if (message.kmsKeyName != null && Object.hasOwnProperty.call(message, "kmsKeyName"))
                             writer.uint32(/* id 5, wireType 2 =*/42).string(message.kmsKeyName);
                         return writer;
                     };
@@ -682,7 +715,7 @@
                     Topic.decode = function decode(reader, length) {
                         if (!(reader instanceof $Reader))
                             reader = $Reader.create(reader);
-                        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.google.pubsub.v1.Topic(), key;
+                        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.google.pubsub.v1.Topic(), key, value;
                         while (reader.pos < end) {
                             var tag = reader.uint32();
                             switch (tag >>> 3) {
@@ -690,12 +723,26 @@
                                 message.name = reader.string();
                                 break;
                             case 2:
-                                reader.skip().pos++;
                                 if (message.labels === $util.emptyObject)
                                     message.labels = {};
-                                key = reader.string();
-                                reader.pos++;
-                                message.labels[key] = reader.string();
+                                var end2 = reader.uint32() + reader.pos;
+                                key = "";
+                                value = "";
+                                while (reader.pos < end2) {
+                                    var tag2 = reader.uint32();
+                                    switch (tag2 >>> 3) {
+                                    case 1:
+                                        key = reader.string();
+                                        break;
+                                    case 2:
+                                        value = reader.string();
+                                        break;
+                                    default:
+                                        reader.skipType(tag2 & 7);
+                                        break;
+                                    }
+                                }
+                                message.labels[key] = value;
                                 break;
                             case 3:
                                 message.messageStoragePolicy = $root.google.pubsub.v1.MessageStoragePolicy.decode(reader, reader.uint32());
@@ -933,16 +980,16 @@
                     PubsubMessage.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.data != null && message.hasOwnProperty("data"))
+                        if (message.data != null && Object.hasOwnProperty.call(message, "data"))
                             writer.uint32(/* id 1, wireType 2 =*/10).bytes(message.data);
-                        if (message.attributes != null && message.hasOwnProperty("attributes"))
+                        if (message.attributes != null && Object.hasOwnProperty.call(message, "attributes"))
                             for (var keys = Object.keys(message.attributes), i = 0; i < keys.length; ++i)
                                 writer.uint32(/* id 2, wireType 2 =*/18).fork().uint32(/* id 1, wireType 2 =*/10).string(keys[i]).uint32(/* id 2, wireType 2 =*/18).string(message.attributes[keys[i]]).ldelim();
-                        if (message.messageId != null && message.hasOwnProperty("messageId"))
+                        if (message.messageId != null && Object.hasOwnProperty.call(message, "messageId"))
                             writer.uint32(/* id 3, wireType 2 =*/26).string(message.messageId);
-                        if (message.publishTime != null && message.hasOwnProperty("publishTime"))
+                        if (message.publishTime != null && Object.hasOwnProperty.call(message, "publishTime"))
                             $root.google.protobuf.Timestamp.encode(message.publishTime, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
-                        if (message.orderingKey != null && message.hasOwnProperty("orderingKey"))
+                        if (message.orderingKey != null && Object.hasOwnProperty.call(message, "orderingKey"))
                             writer.uint32(/* id 5, wireType 2 =*/42).string(message.orderingKey);
                         return writer;
                     };
@@ -974,7 +1021,7 @@
                     PubsubMessage.decode = function decode(reader, length) {
                         if (!(reader instanceof $Reader))
                             reader = $Reader.create(reader);
-                        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.google.pubsub.v1.PubsubMessage(), key;
+                        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.google.pubsub.v1.PubsubMessage(), key, value;
                         while (reader.pos < end) {
                             var tag = reader.uint32();
                             switch (tag >>> 3) {
@@ -982,12 +1029,26 @@
                                 message.data = reader.bytes();
                                 break;
                             case 2:
-                                reader.skip().pos++;
                                 if (message.attributes === $util.emptyObject)
                                     message.attributes = {};
-                                key = reader.string();
-                                reader.pos++;
-                                message.attributes[key] = reader.string();
+                                var end2 = reader.uint32() + reader.pos;
+                                key = "";
+                                value = "";
+                                while (reader.pos < end2) {
+                                    var tag2 = reader.uint32();
+                                    switch (tag2 >>> 3) {
+                                    case 1:
+                                        key = reader.string();
+                                        break;
+                                    case 2:
+                                        value = reader.string();
+                                        break;
+                                    default:
+                                        reader.skipType(tag2 & 7);
+                                        break;
+                                    }
+                                }
+                                message.attributes[key] = value;
                                 break;
                             case 3:
                                 message.messageId = reader.string();
@@ -1208,7 +1269,7 @@
                     GetTopicRequest.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.topic != null && message.hasOwnProperty("topic"))
+                        if (message.topic != null && Object.hasOwnProperty.call(message, "topic"))
                             writer.uint32(/* id 1, wireType 2 =*/10).string(message.topic);
                         return writer;
                     };
@@ -1404,9 +1465,9 @@
                     UpdateTopicRequest.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.topic != null && message.hasOwnProperty("topic"))
+                        if (message.topic != null && Object.hasOwnProperty.call(message, "topic"))
                             $root.google.pubsub.v1.Topic.encode(message.topic, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
-                        if (message.updateMask != null && message.hasOwnProperty("updateMask"))
+                        if (message.updateMask != null && Object.hasOwnProperty.call(message, "updateMask"))
                             $root.google.protobuf.FieldMask.encode(message.updateMask, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
                         return writer;
                     };
@@ -1625,7 +1686,7 @@
                     PublishRequest.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.topic != null && message.hasOwnProperty("topic"))
+                        if (message.topic != null && Object.hasOwnProperty.call(message, "topic"))
                             writer.uint32(/* id 1, wireType 2 =*/10).string(message.topic);
                         if (message.messages != null && message.messages.length)
                             for (var i = 0; i < message.messages.length; ++i)
@@ -2067,11 +2128,11 @@
                     ListTopicsRequest.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.project != null && message.hasOwnProperty("project"))
+                        if (message.project != null && Object.hasOwnProperty.call(message, "project"))
                             writer.uint32(/* id 1, wireType 2 =*/10).string(message.project);
-                        if (message.pageSize != null && message.hasOwnProperty("pageSize"))
+                        if (message.pageSize != null && Object.hasOwnProperty.call(message, "pageSize"))
                             writer.uint32(/* id 2, wireType 0 =*/16).int32(message.pageSize);
-                        if (message.pageToken != null && message.hasOwnProperty("pageToken"))
+                        if (message.pageToken != null && Object.hasOwnProperty.call(message, "pageToken"))
                             writer.uint32(/* id 3, wireType 2 =*/26).string(message.pageToken);
                         return writer;
                     };
@@ -2294,7 +2355,7 @@
                         if (message.topics != null && message.topics.length)
                             for (var i = 0; i < message.topics.length; ++i)
                                 $root.google.pubsub.v1.Topic.encode(message.topics[i], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
-                        if (message.nextPageToken != null && message.hasOwnProperty("nextPageToken"))
+                        if (message.nextPageToken != null && Object.hasOwnProperty.call(message, "nextPageToken"))
                             writer.uint32(/* id 2, wireType 2 =*/18).string(message.nextPageToken);
                         return writer;
                     };
@@ -2530,11 +2591,11 @@
                     ListTopicSubscriptionsRequest.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.topic != null && message.hasOwnProperty("topic"))
+                        if (message.topic != null && Object.hasOwnProperty.call(message, "topic"))
                             writer.uint32(/* id 1, wireType 2 =*/10).string(message.topic);
-                        if (message.pageSize != null && message.hasOwnProperty("pageSize"))
+                        if (message.pageSize != null && Object.hasOwnProperty.call(message, "pageSize"))
                             writer.uint32(/* id 2, wireType 0 =*/16).int32(message.pageSize);
-                        if (message.pageToken != null && message.hasOwnProperty("pageToken"))
+                        if (message.pageToken != null && Object.hasOwnProperty.call(message, "pageToken"))
                             writer.uint32(/* id 3, wireType 2 =*/26).string(message.pageToken);
                         return writer;
                     };
@@ -2757,7 +2818,7 @@
                         if (message.subscriptions != null && message.subscriptions.length)
                             for (var i = 0; i < message.subscriptions.length; ++i)
                                 writer.uint32(/* id 1, wireType 2 =*/10).string(message.subscriptions[i]);
-                        if (message.nextPageToken != null && message.hasOwnProperty("nextPageToken"))
+                        if (message.nextPageToken != null && Object.hasOwnProperty.call(message, "nextPageToken"))
                             writer.uint32(/* id 2, wireType 2 =*/18).string(message.nextPageToken);
                         return writer;
                     };
@@ -2988,11 +3049,11 @@
                     ListTopicSnapshotsRequest.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.topic != null && message.hasOwnProperty("topic"))
+                        if (message.topic != null && Object.hasOwnProperty.call(message, "topic"))
                             writer.uint32(/* id 1, wireType 2 =*/10).string(message.topic);
-                        if (message.pageSize != null && message.hasOwnProperty("pageSize"))
+                        if (message.pageSize != null && Object.hasOwnProperty.call(message, "pageSize"))
                             writer.uint32(/* id 2, wireType 0 =*/16).int32(message.pageSize);
-                        if (message.pageToken != null && message.hasOwnProperty("pageToken"))
+                        if (message.pageToken != null && Object.hasOwnProperty.call(message, "pageToken"))
                             writer.uint32(/* id 3, wireType 2 =*/26).string(message.pageToken);
                         return writer;
                     };
@@ -3215,7 +3276,7 @@
                         if (message.snapshots != null && message.snapshots.length)
                             for (var i = 0; i < message.snapshots.length; ++i)
                                 writer.uint32(/* id 1, wireType 2 =*/10).string(message.snapshots[i]);
-                        if (message.nextPageToken != null && message.hasOwnProperty("nextPageToken"))
+                        if (message.nextPageToken != null && Object.hasOwnProperty.call(message, "nextPageToken"))
                             writer.uint32(/* id 2, wireType 2 =*/18).string(message.nextPageToken);
                         return writer;
                     };
@@ -3428,7 +3489,7 @@
                     DeleteTopicRequest.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.topic != null && message.hasOwnProperty("topic"))
+                        if (message.topic != null && Object.hasOwnProperty.call(message, "topic"))
                             writer.uint32(/* id 1, wireType 2 =*/10).string(message.topic);
                         return writer;
                     };
@@ -3557,6 +3618,353 @@
                     };
     
                     return DeleteTopicRequest;
+                })();
+    
+                v1.DetachSubscriptionRequest = (function() {
+    
+                    /**
+                     * Properties of a DetachSubscriptionRequest.
+                     * @memberof google.pubsub.v1
+                     * @interface IDetachSubscriptionRequest
+                     * @property {string|null} [subscription] DetachSubscriptionRequest subscription
+                     */
+    
+                    /**
+                     * Constructs a new DetachSubscriptionRequest.
+                     * @memberof google.pubsub.v1
+                     * @classdesc Represents a DetachSubscriptionRequest.
+                     * @implements IDetachSubscriptionRequest
+                     * @constructor
+                     * @param {google.pubsub.v1.IDetachSubscriptionRequest=} [properties] Properties to set
+                     */
+                    function DetachSubscriptionRequest(properties) {
+                        if (properties)
+                            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                                if (properties[keys[i]] != null)
+                                    this[keys[i]] = properties[keys[i]];
+                    }
+    
+                    /**
+                     * DetachSubscriptionRequest subscription.
+                     * @member {string} subscription
+                     * @memberof google.pubsub.v1.DetachSubscriptionRequest
+                     * @instance
+                     */
+                    DetachSubscriptionRequest.prototype.subscription = "";
+    
+                    /**
+                     * Creates a new DetachSubscriptionRequest instance using the specified properties.
+                     * @function create
+                     * @memberof google.pubsub.v1.DetachSubscriptionRequest
+                     * @static
+                     * @param {google.pubsub.v1.IDetachSubscriptionRequest=} [properties] Properties to set
+                     * @returns {google.pubsub.v1.DetachSubscriptionRequest} DetachSubscriptionRequest instance
+                     */
+                    DetachSubscriptionRequest.create = function create(properties) {
+                        return new DetachSubscriptionRequest(properties);
+                    };
+    
+                    /**
+                     * Encodes the specified DetachSubscriptionRequest message. Does not implicitly {@link google.pubsub.v1.DetachSubscriptionRequest.verify|verify} messages.
+                     * @function encode
+                     * @memberof google.pubsub.v1.DetachSubscriptionRequest
+                     * @static
+                     * @param {google.pubsub.v1.IDetachSubscriptionRequest} message DetachSubscriptionRequest message or plain object to encode
+                     * @param {$protobuf.Writer} [writer] Writer to encode to
+                     * @returns {$protobuf.Writer} Writer
+                     */
+                    DetachSubscriptionRequest.encode = function encode(message, writer) {
+                        if (!writer)
+                            writer = $Writer.create();
+                        if (message.subscription != null && Object.hasOwnProperty.call(message, "subscription"))
+                            writer.uint32(/* id 1, wireType 2 =*/10).string(message.subscription);
+                        return writer;
+                    };
+    
+                    /**
+                     * Encodes the specified DetachSubscriptionRequest message, length delimited. Does not implicitly {@link google.pubsub.v1.DetachSubscriptionRequest.verify|verify} messages.
+                     * @function encodeDelimited
+                     * @memberof google.pubsub.v1.DetachSubscriptionRequest
+                     * @static
+                     * @param {google.pubsub.v1.IDetachSubscriptionRequest} message DetachSubscriptionRequest message or plain object to encode
+                     * @param {$protobuf.Writer} [writer] Writer to encode to
+                     * @returns {$protobuf.Writer} Writer
+                     */
+                    DetachSubscriptionRequest.encodeDelimited = function encodeDelimited(message, writer) {
+                        return this.encode(message, writer).ldelim();
+                    };
+    
+                    /**
+                     * Decodes a DetachSubscriptionRequest message from the specified reader or buffer.
+                     * @function decode
+                     * @memberof google.pubsub.v1.DetachSubscriptionRequest
+                     * @static
+                     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                     * @param {number} [length] Message length if known beforehand
+                     * @returns {google.pubsub.v1.DetachSubscriptionRequest} DetachSubscriptionRequest
+                     * @throws {Error} If the payload is not a reader or valid buffer
+                     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                     */
+                    DetachSubscriptionRequest.decode = function decode(reader, length) {
+                        if (!(reader instanceof $Reader))
+                            reader = $Reader.create(reader);
+                        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.google.pubsub.v1.DetachSubscriptionRequest();
+                        while (reader.pos < end) {
+                            var tag = reader.uint32();
+                            switch (tag >>> 3) {
+                            case 1:
+                                message.subscription = reader.string();
+                                break;
+                            default:
+                                reader.skipType(tag & 7);
+                                break;
+                            }
+                        }
+                        return message;
+                    };
+    
+                    /**
+                     * Decodes a DetachSubscriptionRequest message from the specified reader or buffer, length delimited.
+                     * @function decodeDelimited
+                     * @memberof google.pubsub.v1.DetachSubscriptionRequest
+                     * @static
+                     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                     * @returns {google.pubsub.v1.DetachSubscriptionRequest} DetachSubscriptionRequest
+                     * @throws {Error} If the payload is not a reader or valid buffer
+                     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                     */
+                    DetachSubscriptionRequest.decodeDelimited = function decodeDelimited(reader) {
+                        if (!(reader instanceof $Reader))
+                            reader = new $Reader(reader);
+                        return this.decode(reader, reader.uint32());
+                    };
+    
+                    /**
+                     * Verifies a DetachSubscriptionRequest message.
+                     * @function verify
+                     * @memberof google.pubsub.v1.DetachSubscriptionRequest
+                     * @static
+                     * @param {Object.<string,*>} message Plain object to verify
+                     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+                     */
+                    DetachSubscriptionRequest.verify = function verify(message) {
+                        if (typeof message !== "object" || message === null)
+                            return "object expected";
+                        if (message.subscription != null && message.hasOwnProperty("subscription"))
+                            if (!$util.isString(message.subscription))
+                                return "subscription: string expected";
+                        return null;
+                    };
+    
+                    /**
+                     * Creates a DetachSubscriptionRequest message from a plain object. Also converts values to their respective internal types.
+                     * @function fromObject
+                     * @memberof google.pubsub.v1.DetachSubscriptionRequest
+                     * @static
+                     * @param {Object.<string,*>} object Plain object
+                     * @returns {google.pubsub.v1.DetachSubscriptionRequest} DetachSubscriptionRequest
+                     */
+                    DetachSubscriptionRequest.fromObject = function fromObject(object) {
+                        if (object instanceof $root.google.pubsub.v1.DetachSubscriptionRequest)
+                            return object;
+                        var message = new $root.google.pubsub.v1.DetachSubscriptionRequest();
+                        if (object.subscription != null)
+                            message.subscription = String(object.subscription);
+                        return message;
+                    };
+    
+                    /**
+                     * Creates a plain object from a DetachSubscriptionRequest message. Also converts values to other types if specified.
+                     * @function toObject
+                     * @memberof google.pubsub.v1.DetachSubscriptionRequest
+                     * @static
+                     * @param {google.pubsub.v1.DetachSubscriptionRequest} message DetachSubscriptionRequest
+                     * @param {$protobuf.IConversionOptions} [options] Conversion options
+                     * @returns {Object.<string,*>} Plain object
+                     */
+                    DetachSubscriptionRequest.toObject = function toObject(message, options) {
+                        if (!options)
+                            options = {};
+                        var object = {};
+                        if (options.defaults)
+                            object.subscription = "";
+                        if (message.subscription != null && message.hasOwnProperty("subscription"))
+                            object.subscription = message.subscription;
+                        return object;
+                    };
+    
+                    /**
+                     * Converts this DetachSubscriptionRequest to JSON.
+                     * @function toJSON
+                     * @memberof google.pubsub.v1.DetachSubscriptionRequest
+                     * @instance
+                     * @returns {Object.<string,*>} JSON object
+                     */
+                    DetachSubscriptionRequest.prototype.toJSON = function toJSON() {
+                        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+                    };
+    
+                    return DetachSubscriptionRequest;
+                })();
+    
+                v1.DetachSubscriptionResponse = (function() {
+    
+                    /**
+                     * Properties of a DetachSubscriptionResponse.
+                     * @memberof google.pubsub.v1
+                     * @interface IDetachSubscriptionResponse
+                     */
+    
+                    /**
+                     * Constructs a new DetachSubscriptionResponse.
+                     * @memberof google.pubsub.v1
+                     * @classdesc Represents a DetachSubscriptionResponse.
+                     * @implements IDetachSubscriptionResponse
+                     * @constructor
+                     * @param {google.pubsub.v1.IDetachSubscriptionResponse=} [properties] Properties to set
+                     */
+                    function DetachSubscriptionResponse(properties) {
+                        if (properties)
+                            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                                if (properties[keys[i]] != null)
+                                    this[keys[i]] = properties[keys[i]];
+                    }
+    
+                    /**
+                     * Creates a new DetachSubscriptionResponse instance using the specified properties.
+                     * @function create
+                     * @memberof google.pubsub.v1.DetachSubscriptionResponse
+                     * @static
+                     * @param {google.pubsub.v1.IDetachSubscriptionResponse=} [properties] Properties to set
+                     * @returns {google.pubsub.v1.DetachSubscriptionResponse} DetachSubscriptionResponse instance
+                     */
+                    DetachSubscriptionResponse.create = function create(properties) {
+                        return new DetachSubscriptionResponse(properties);
+                    };
+    
+                    /**
+                     * Encodes the specified DetachSubscriptionResponse message. Does not implicitly {@link google.pubsub.v1.DetachSubscriptionResponse.verify|verify} messages.
+                     * @function encode
+                     * @memberof google.pubsub.v1.DetachSubscriptionResponse
+                     * @static
+                     * @param {google.pubsub.v1.IDetachSubscriptionResponse} message DetachSubscriptionResponse message or plain object to encode
+                     * @param {$protobuf.Writer} [writer] Writer to encode to
+                     * @returns {$protobuf.Writer} Writer
+                     */
+                    DetachSubscriptionResponse.encode = function encode(message, writer) {
+                        if (!writer)
+                            writer = $Writer.create();
+                        return writer;
+                    };
+    
+                    /**
+                     * Encodes the specified DetachSubscriptionResponse message, length delimited. Does not implicitly {@link google.pubsub.v1.DetachSubscriptionResponse.verify|verify} messages.
+                     * @function encodeDelimited
+                     * @memberof google.pubsub.v1.DetachSubscriptionResponse
+                     * @static
+                     * @param {google.pubsub.v1.IDetachSubscriptionResponse} message DetachSubscriptionResponse message or plain object to encode
+                     * @param {$protobuf.Writer} [writer] Writer to encode to
+                     * @returns {$protobuf.Writer} Writer
+                     */
+                    DetachSubscriptionResponse.encodeDelimited = function encodeDelimited(message, writer) {
+                        return this.encode(message, writer).ldelim();
+                    };
+    
+                    /**
+                     * Decodes a DetachSubscriptionResponse message from the specified reader or buffer.
+                     * @function decode
+                     * @memberof google.pubsub.v1.DetachSubscriptionResponse
+                     * @static
+                     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                     * @param {number} [length] Message length if known beforehand
+                     * @returns {google.pubsub.v1.DetachSubscriptionResponse} DetachSubscriptionResponse
+                     * @throws {Error} If the payload is not a reader or valid buffer
+                     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                     */
+                    DetachSubscriptionResponse.decode = function decode(reader, length) {
+                        if (!(reader instanceof $Reader))
+                            reader = $Reader.create(reader);
+                        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.google.pubsub.v1.DetachSubscriptionResponse();
+                        while (reader.pos < end) {
+                            var tag = reader.uint32();
+                            switch (tag >>> 3) {
+                            default:
+                                reader.skipType(tag & 7);
+                                break;
+                            }
+                        }
+                        return message;
+                    };
+    
+                    /**
+                     * Decodes a DetachSubscriptionResponse message from the specified reader or buffer, length delimited.
+                     * @function decodeDelimited
+                     * @memberof google.pubsub.v1.DetachSubscriptionResponse
+                     * @static
+                     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                     * @returns {google.pubsub.v1.DetachSubscriptionResponse} DetachSubscriptionResponse
+                     * @throws {Error} If the payload is not a reader or valid buffer
+                     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                     */
+                    DetachSubscriptionResponse.decodeDelimited = function decodeDelimited(reader) {
+                        if (!(reader instanceof $Reader))
+                            reader = new $Reader(reader);
+                        return this.decode(reader, reader.uint32());
+                    };
+    
+                    /**
+                     * Verifies a DetachSubscriptionResponse message.
+                     * @function verify
+                     * @memberof google.pubsub.v1.DetachSubscriptionResponse
+                     * @static
+                     * @param {Object.<string,*>} message Plain object to verify
+                     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+                     */
+                    DetachSubscriptionResponse.verify = function verify(message) {
+                        if (typeof message !== "object" || message === null)
+                            return "object expected";
+                        return null;
+                    };
+    
+                    /**
+                     * Creates a DetachSubscriptionResponse message from a plain object. Also converts values to their respective internal types.
+                     * @function fromObject
+                     * @memberof google.pubsub.v1.DetachSubscriptionResponse
+                     * @static
+                     * @param {Object.<string,*>} object Plain object
+                     * @returns {google.pubsub.v1.DetachSubscriptionResponse} DetachSubscriptionResponse
+                     */
+                    DetachSubscriptionResponse.fromObject = function fromObject(object) {
+                        if (object instanceof $root.google.pubsub.v1.DetachSubscriptionResponse)
+                            return object;
+                        return new $root.google.pubsub.v1.DetachSubscriptionResponse();
+                    };
+    
+                    /**
+                     * Creates a plain object from a DetachSubscriptionResponse message. Also converts values to other types if specified.
+                     * @function toObject
+                     * @memberof google.pubsub.v1.DetachSubscriptionResponse
+                     * @static
+                     * @param {google.pubsub.v1.DetachSubscriptionResponse} message DetachSubscriptionResponse
+                     * @param {$protobuf.IConversionOptions} [options] Conversion options
+                     * @returns {Object.<string,*>} Plain object
+                     */
+                    DetachSubscriptionResponse.toObject = function toObject() {
+                        return {};
+                    };
+    
+                    /**
+                     * Converts this DetachSubscriptionResponse to JSON.
+                     * @function toJSON
+                     * @memberof google.pubsub.v1.DetachSubscriptionResponse
+                     * @instance
+                     * @returns {Object.<string,*>} JSON object
+                     */
+                    DetachSubscriptionResponse.prototype.toJSON = function toJSON() {
+                        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+                    };
+    
+                    return DetachSubscriptionResponse;
                 })();
     
                 v1.Subscriber = (function() {
@@ -4137,7 +4545,10 @@
                      * @property {Object.<string,string>|null} [labels] Subscription labels
                      * @property {boolean|null} [enableMessageOrdering] Subscription enableMessageOrdering
                      * @property {google.pubsub.v1.IExpirationPolicy|null} [expirationPolicy] Subscription expirationPolicy
+                     * @property {string|null} [filter] Subscription filter
                      * @property {google.pubsub.v1.IDeadLetterPolicy|null} [deadLetterPolicy] Subscription deadLetterPolicy
+                     * @property {google.pubsub.v1.IRetryPolicy|null} [retryPolicy] Subscription retryPolicy
+                     * @property {boolean|null} [detached] Subscription detached
                      */
     
                     /**
@@ -4229,12 +4640,36 @@
                     Subscription.prototype.expirationPolicy = null;
     
                     /**
+                     * Subscription filter.
+                     * @member {string} filter
+                     * @memberof google.pubsub.v1.Subscription
+                     * @instance
+                     */
+                    Subscription.prototype.filter = "";
+    
+                    /**
                      * Subscription deadLetterPolicy.
                      * @member {google.pubsub.v1.IDeadLetterPolicy|null|undefined} deadLetterPolicy
                      * @memberof google.pubsub.v1.Subscription
                      * @instance
                      */
                     Subscription.prototype.deadLetterPolicy = null;
+    
+                    /**
+                     * Subscription retryPolicy.
+                     * @member {google.pubsub.v1.IRetryPolicy|null|undefined} retryPolicy
+                     * @memberof google.pubsub.v1.Subscription
+                     * @instance
+                     */
+                    Subscription.prototype.retryPolicy = null;
+    
+                    /**
+                     * Subscription detached.
+                     * @member {boolean} detached
+                     * @memberof google.pubsub.v1.Subscription
+                     * @instance
+                     */
+                    Subscription.prototype.detached = false;
     
                     /**
                      * Creates a new Subscription instance using the specified properties.
@@ -4260,27 +4695,33 @@
                     Subscription.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.name != null && message.hasOwnProperty("name"))
+                        if (message.name != null && Object.hasOwnProperty.call(message, "name"))
                             writer.uint32(/* id 1, wireType 2 =*/10).string(message.name);
-                        if (message.topic != null && message.hasOwnProperty("topic"))
+                        if (message.topic != null && Object.hasOwnProperty.call(message, "topic"))
                             writer.uint32(/* id 2, wireType 2 =*/18).string(message.topic);
-                        if (message.pushConfig != null && message.hasOwnProperty("pushConfig"))
+                        if (message.pushConfig != null && Object.hasOwnProperty.call(message, "pushConfig"))
                             $root.google.pubsub.v1.PushConfig.encode(message.pushConfig, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
-                        if (message.ackDeadlineSeconds != null && message.hasOwnProperty("ackDeadlineSeconds"))
+                        if (message.ackDeadlineSeconds != null && Object.hasOwnProperty.call(message, "ackDeadlineSeconds"))
                             writer.uint32(/* id 5, wireType 0 =*/40).int32(message.ackDeadlineSeconds);
-                        if (message.retainAckedMessages != null && message.hasOwnProperty("retainAckedMessages"))
+                        if (message.retainAckedMessages != null && Object.hasOwnProperty.call(message, "retainAckedMessages"))
                             writer.uint32(/* id 7, wireType 0 =*/56).bool(message.retainAckedMessages);
-                        if (message.messageRetentionDuration != null && message.hasOwnProperty("messageRetentionDuration"))
+                        if (message.messageRetentionDuration != null && Object.hasOwnProperty.call(message, "messageRetentionDuration"))
                             $root.google.protobuf.Duration.encode(message.messageRetentionDuration, writer.uint32(/* id 8, wireType 2 =*/66).fork()).ldelim();
-                        if (message.labels != null && message.hasOwnProperty("labels"))
+                        if (message.labels != null && Object.hasOwnProperty.call(message, "labels"))
                             for (var keys = Object.keys(message.labels), i = 0; i < keys.length; ++i)
                                 writer.uint32(/* id 9, wireType 2 =*/74).fork().uint32(/* id 1, wireType 2 =*/10).string(keys[i]).uint32(/* id 2, wireType 2 =*/18).string(message.labels[keys[i]]).ldelim();
-                        if (message.enableMessageOrdering != null && message.hasOwnProperty("enableMessageOrdering"))
+                        if (message.enableMessageOrdering != null && Object.hasOwnProperty.call(message, "enableMessageOrdering"))
                             writer.uint32(/* id 10, wireType 0 =*/80).bool(message.enableMessageOrdering);
-                        if (message.expirationPolicy != null && message.hasOwnProperty("expirationPolicy"))
+                        if (message.expirationPolicy != null && Object.hasOwnProperty.call(message, "expirationPolicy"))
                             $root.google.pubsub.v1.ExpirationPolicy.encode(message.expirationPolicy, writer.uint32(/* id 11, wireType 2 =*/90).fork()).ldelim();
-                        if (message.deadLetterPolicy != null && message.hasOwnProperty("deadLetterPolicy"))
+                        if (message.filter != null && Object.hasOwnProperty.call(message, "filter"))
+                            writer.uint32(/* id 12, wireType 2 =*/98).string(message.filter);
+                        if (message.deadLetterPolicy != null && Object.hasOwnProperty.call(message, "deadLetterPolicy"))
                             $root.google.pubsub.v1.DeadLetterPolicy.encode(message.deadLetterPolicy, writer.uint32(/* id 13, wireType 2 =*/106).fork()).ldelim();
+                        if (message.retryPolicy != null && Object.hasOwnProperty.call(message, "retryPolicy"))
+                            $root.google.pubsub.v1.RetryPolicy.encode(message.retryPolicy, writer.uint32(/* id 14, wireType 2 =*/114).fork()).ldelim();
+                        if (message.detached != null && Object.hasOwnProperty.call(message, "detached"))
+                            writer.uint32(/* id 15, wireType 0 =*/120).bool(message.detached);
                         return writer;
                     };
     
@@ -4311,7 +4752,7 @@
                     Subscription.decode = function decode(reader, length) {
                         if (!(reader instanceof $Reader))
                             reader = $Reader.create(reader);
-                        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.google.pubsub.v1.Subscription(), key;
+                        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.google.pubsub.v1.Subscription(), key, value;
                         while (reader.pos < end) {
                             var tag = reader.uint32();
                             switch (tag >>> 3) {
@@ -4334,12 +4775,26 @@
                                 message.messageRetentionDuration = $root.google.protobuf.Duration.decode(reader, reader.uint32());
                                 break;
                             case 9:
-                                reader.skip().pos++;
                                 if (message.labels === $util.emptyObject)
                                     message.labels = {};
-                                key = reader.string();
-                                reader.pos++;
-                                message.labels[key] = reader.string();
+                                var end2 = reader.uint32() + reader.pos;
+                                key = "";
+                                value = "";
+                                while (reader.pos < end2) {
+                                    var tag2 = reader.uint32();
+                                    switch (tag2 >>> 3) {
+                                    case 1:
+                                        key = reader.string();
+                                        break;
+                                    case 2:
+                                        value = reader.string();
+                                        break;
+                                    default:
+                                        reader.skipType(tag2 & 7);
+                                        break;
+                                    }
+                                }
+                                message.labels[key] = value;
                                 break;
                             case 10:
                                 message.enableMessageOrdering = reader.bool();
@@ -4347,8 +4802,17 @@
                             case 11:
                                 message.expirationPolicy = $root.google.pubsub.v1.ExpirationPolicy.decode(reader, reader.uint32());
                                 break;
+                            case 12:
+                                message.filter = reader.string();
+                                break;
                             case 13:
                                 message.deadLetterPolicy = $root.google.pubsub.v1.DeadLetterPolicy.decode(reader, reader.uint32());
+                                break;
+                            case 14:
+                                message.retryPolicy = $root.google.pubsub.v1.RetryPolicy.decode(reader, reader.uint32());
+                                break;
+                            case 15:
+                                message.detached = reader.bool();
                                 break;
                             default:
                                 reader.skipType(tag & 7);
@@ -4423,11 +4887,22 @@
                             if (error)
                                 return "expirationPolicy." + error;
                         }
+                        if (message.filter != null && message.hasOwnProperty("filter"))
+                            if (!$util.isString(message.filter))
+                                return "filter: string expected";
                         if (message.deadLetterPolicy != null && message.hasOwnProperty("deadLetterPolicy")) {
                             var error = $root.google.pubsub.v1.DeadLetterPolicy.verify(message.deadLetterPolicy);
                             if (error)
                                 return "deadLetterPolicy." + error;
                         }
+                        if (message.retryPolicy != null && message.hasOwnProperty("retryPolicy")) {
+                            var error = $root.google.pubsub.v1.RetryPolicy.verify(message.retryPolicy);
+                            if (error)
+                                return "retryPolicy." + error;
+                        }
+                        if (message.detached != null && message.hasOwnProperty("detached"))
+                            if (typeof message.detached !== "boolean")
+                                return "detached: boolean expected";
                         return null;
                     };
     
@@ -4475,11 +4950,20 @@
                                 throw TypeError(".google.pubsub.v1.Subscription.expirationPolicy: object expected");
                             message.expirationPolicy = $root.google.pubsub.v1.ExpirationPolicy.fromObject(object.expirationPolicy);
                         }
+                        if (object.filter != null)
+                            message.filter = String(object.filter);
                         if (object.deadLetterPolicy != null) {
                             if (typeof object.deadLetterPolicy !== "object")
                                 throw TypeError(".google.pubsub.v1.Subscription.deadLetterPolicy: object expected");
                             message.deadLetterPolicy = $root.google.pubsub.v1.DeadLetterPolicy.fromObject(object.deadLetterPolicy);
                         }
+                        if (object.retryPolicy != null) {
+                            if (typeof object.retryPolicy !== "object")
+                                throw TypeError(".google.pubsub.v1.Subscription.retryPolicy: object expected");
+                            message.retryPolicy = $root.google.pubsub.v1.RetryPolicy.fromObject(object.retryPolicy);
+                        }
+                        if (object.detached != null)
+                            message.detached = Boolean(object.detached);
                         return message;
                     };
     
@@ -4507,7 +4991,10 @@
                             object.messageRetentionDuration = null;
                             object.enableMessageOrdering = false;
                             object.expirationPolicy = null;
+                            object.filter = "";
                             object.deadLetterPolicy = null;
+                            object.retryPolicy = null;
+                            object.detached = false;
                         }
                         if (message.name != null && message.hasOwnProperty("name"))
                             object.name = message.name;
@@ -4531,8 +5018,14 @@
                             object.enableMessageOrdering = message.enableMessageOrdering;
                         if (message.expirationPolicy != null && message.hasOwnProperty("expirationPolicy"))
                             object.expirationPolicy = $root.google.pubsub.v1.ExpirationPolicy.toObject(message.expirationPolicy, options);
+                        if (message.filter != null && message.hasOwnProperty("filter"))
+                            object.filter = message.filter;
                         if (message.deadLetterPolicy != null && message.hasOwnProperty("deadLetterPolicy"))
                             object.deadLetterPolicy = $root.google.pubsub.v1.DeadLetterPolicy.toObject(message.deadLetterPolicy, options);
+                        if (message.retryPolicy != null && message.hasOwnProperty("retryPolicy"))
+                            object.retryPolicy = $root.google.pubsub.v1.RetryPolicy.toObject(message.retryPolicy, options);
+                        if (message.detached != null && message.hasOwnProperty("detached"))
+                            object.detached = message.detached;
                         return object;
                     };
     
@@ -4548,6 +5041,226 @@
                     };
     
                     return Subscription;
+                })();
+    
+                v1.RetryPolicy = (function() {
+    
+                    /**
+                     * Properties of a RetryPolicy.
+                     * @memberof google.pubsub.v1
+                     * @interface IRetryPolicy
+                     * @property {google.protobuf.IDuration|null} [minimumBackoff] RetryPolicy minimumBackoff
+                     * @property {google.protobuf.IDuration|null} [maximumBackoff] RetryPolicy maximumBackoff
+                     */
+    
+                    /**
+                     * Constructs a new RetryPolicy.
+                     * @memberof google.pubsub.v1
+                     * @classdesc Represents a RetryPolicy.
+                     * @implements IRetryPolicy
+                     * @constructor
+                     * @param {google.pubsub.v1.IRetryPolicy=} [properties] Properties to set
+                     */
+                    function RetryPolicy(properties) {
+                        if (properties)
+                            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                                if (properties[keys[i]] != null)
+                                    this[keys[i]] = properties[keys[i]];
+                    }
+    
+                    /**
+                     * RetryPolicy minimumBackoff.
+                     * @member {google.protobuf.IDuration|null|undefined} minimumBackoff
+                     * @memberof google.pubsub.v1.RetryPolicy
+                     * @instance
+                     */
+                    RetryPolicy.prototype.minimumBackoff = null;
+    
+                    /**
+                     * RetryPolicy maximumBackoff.
+                     * @member {google.protobuf.IDuration|null|undefined} maximumBackoff
+                     * @memberof google.pubsub.v1.RetryPolicy
+                     * @instance
+                     */
+                    RetryPolicy.prototype.maximumBackoff = null;
+    
+                    /**
+                     * Creates a new RetryPolicy instance using the specified properties.
+                     * @function create
+                     * @memberof google.pubsub.v1.RetryPolicy
+                     * @static
+                     * @param {google.pubsub.v1.IRetryPolicy=} [properties] Properties to set
+                     * @returns {google.pubsub.v1.RetryPolicy} RetryPolicy instance
+                     */
+                    RetryPolicy.create = function create(properties) {
+                        return new RetryPolicy(properties);
+                    };
+    
+                    /**
+                     * Encodes the specified RetryPolicy message. Does not implicitly {@link google.pubsub.v1.RetryPolicy.verify|verify} messages.
+                     * @function encode
+                     * @memberof google.pubsub.v1.RetryPolicy
+                     * @static
+                     * @param {google.pubsub.v1.IRetryPolicy} message RetryPolicy message or plain object to encode
+                     * @param {$protobuf.Writer} [writer] Writer to encode to
+                     * @returns {$protobuf.Writer} Writer
+                     */
+                    RetryPolicy.encode = function encode(message, writer) {
+                        if (!writer)
+                            writer = $Writer.create();
+                        if (message.minimumBackoff != null && Object.hasOwnProperty.call(message, "minimumBackoff"))
+                            $root.google.protobuf.Duration.encode(message.minimumBackoff, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                        if (message.maximumBackoff != null && Object.hasOwnProperty.call(message, "maximumBackoff"))
+                            $root.google.protobuf.Duration.encode(message.maximumBackoff, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+                        return writer;
+                    };
+    
+                    /**
+                     * Encodes the specified RetryPolicy message, length delimited. Does not implicitly {@link google.pubsub.v1.RetryPolicy.verify|verify} messages.
+                     * @function encodeDelimited
+                     * @memberof google.pubsub.v1.RetryPolicy
+                     * @static
+                     * @param {google.pubsub.v1.IRetryPolicy} message RetryPolicy message or plain object to encode
+                     * @param {$protobuf.Writer} [writer] Writer to encode to
+                     * @returns {$protobuf.Writer} Writer
+                     */
+                    RetryPolicy.encodeDelimited = function encodeDelimited(message, writer) {
+                        return this.encode(message, writer).ldelim();
+                    };
+    
+                    /**
+                     * Decodes a RetryPolicy message from the specified reader or buffer.
+                     * @function decode
+                     * @memberof google.pubsub.v1.RetryPolicy
+                     * @static
+                     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                     * @param {number} [length] Message length if known beforehand
+                     * @returns {google.pubsub.v1.RetryPolicy} RetryPolicy
+                     * @throws {Error} If the payload is not a reader or valid buffer
+                     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                     */
+                    RetryPolicy.decode = function decode(reader, length) {
+                        if (!(reader instanceof $Reader))
+                            reader = $Reader.create(reader);
+                        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.google.pubsub.v1.RetryPolicy();
+                        while (reader.pos < end) {
+                            var tag = reader.uint32();
+                            switch (tag >>> 3) {
+                            case 1:
+                                message.minimumBackoff = $root.google.protobuf.Duration.decode(reader, reader.uint32());
+                                break;
+                            case 2:
+                                message.maximumBackoff = $root.google.protobuf.Duration.decode(reader, reader.uint32());
+                                break;
+                            default:
+                                reader.skipType(tag & 7);
+                                break;
+                            }
+                        }
+                        return message;
+                    };
+    
+                    /**
+                     * Decodes a RetryPolicy message from the specified reader or buffer, length delimited.
+                     * @function decodeDelimited
+                     * @memberof google.pubsub.v1.RetryPolicy
+                     * @static
+                     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                     * @returns {google.pubsub.v1.RetryPolicy} RetryPolicy
+                     * @throws {Error} If the payload is not a reader or valid buffer
+                     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                     */
+                    RetryPolicy.decodeDelimited = function decodeDelimited(reader) {
+                        if (!(reader instanceof $Reader))
+                            reader = new $Reader(reader);
+                        return this.decode(reader, reader.uint32());
+                    };
+    
+                    /**
+                     * Verifies a RetryPolicy message.
+                     * @function verify
+                     * @memberof google.pubsub.v1.RetryPolicy
+                     * @static
+                     * @param {Object.<string,*>} message Plain object to verify
+                     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+                     */
+                    RetryPolicy.verify = function verify(message) {
+                        if (typeof message !== "object" || message === null)
+                            return "object expected";
+                        if (message.minimumBackoff != null && message.hasOwnProperty("minimumBackoff")) {
+                            var error = $root.google.protobuf.Duration.verify(message.minimumBackoff);
+                            if (error)
+                                return "minimumBackoff." + error;
+                        }
+                        if (message.maximumBackoff != null && message.hasOwnProperty("maximumBackoff")) {
+                            var error = $root.google.protobuf.Duration.verify(message.maximumBackoff);
+                            if (error)
+                                return "maximumBackoff." + error;
+                        }
+                        return null;
+                    };
+    
+                    /**
+                     * Creates a RetryPolicy message from a plain object. Also converts values to their respective internal types.
+                     * @function fromObject
+                     * @memberof google.pubsub.v1.RetryPolicy
+                     * @static
+                     * @param {Object.<string,*>} object Plain object
+                     * @returns {google.pubsub.v1.RetryPolicy} RetryPolicy
+                     */
+                    RetryPolicy.fromObject = function fromObject(object) {
+                        if (object instanceof $root.google.pubsub.v1.RetryPolicy)
+                            return object;
+                        var message = new $root.google.pubsub.v1.RetryPolicy();
+                        if (object.minimumBackoff != null) {
+                            if (typeof object.minimumBackoff !== "object")
+                                throw TypeError(".google.pubsub.v1.RetryPolicy.minimumBackoff: object expected");
+                            message.minimumBackoff = $root.google.protobuf.Duration.fromObject(object.minimumBackoff);
+                        }
+                        if (object.maximumBackoff != null) {
+                            if (typeof object.maximumBackoff !== "object")
+                                throw TypeError(".google.pubsub.v1.RetryPolicy.maximumBackoff: object expected");
+                            message.maximumBackoff = $root.google.protobuf.Duration.fromObject(object.maximumBackoff);
+                        }
+                        return message;
+                    };
+    
+                    /**
+                     * Creates a plain object from a RetryPolicy message. Also converts values to other types if specified.
+                     * @function toObject
+                     * @memberof google.pubsub.v1.RetryPolicy
+                     * @static
+                     * @param {google.pubsub.v1.RetryPolicy} message RetryPolicy
+                     * @param {$protobuf.IConversionOptions} [options] Conversion options
+                     * @returns {Object.<string,*>} Plain object
+                     */
+                    RetryPolicy.toObject = function toObject(message, options) {
+                        if (!options)
+                            options = {};
+                        var object = {};
+                        if (options.defaults) {
+                            object.minimumBackoff = null;
+                            object.maximumBackoff = null;
+                        }
+                        if (message.minimumBackoff != null && message.hasOwnProperty("minimumBackoff"))
+                            object.minimumBackoff = $root.google.protobuf.Duration.toObject(message.minimumBackoff, options);
+                        if (message.maximumBackoff != null && message.hasOwnProperty("maximumBackoff"))
+                            object.maximumBackoff = $root.google.protobuf.Duration.toObject(message.maximumBackoff, options);
+                        return object;
+                    };
+    
+                    /**
+                     * Converts this RetryPolicy to JSON.
+                     * @function toJSON
+                     * @memberof google.pubsub.v1.RetryPolicy
+                     * @instance
+                     * @returns {Object.<string,*>} JSON object
+                     */
+                    RetryPolicy.prototype.toJSON = function toJSON() {
+                        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+                    };
+    
+                    return RetryPolicy;
                 })();
     
                 v1.DeadLetterPolicy = (function() {
@@ -4615,9 +5328,9 @@
                     DeadLetterPolicy.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.deadLetterTopic != null && message.hasOwnProperty("deadLetterTopic"))
+                        if (message.deadLetterTopic != null && Object.hasOwnProperty.call(message, "deadLetterTopic"))
                             writer.uint32(/* id 1, wireType 2 =*/10).string(message.deadLetterTopic);
-                        if (message.maxDeliveryAttempts != null && message.hasOwnProperty("maxDeliveryAttempts"))
+                        if (message.maxDeliveryAttempts != null && Object.hasOwnProperty.call(message, "maxDeliveryAttempts"))
                             writer.uint32(/* id 2, wireType 0 =*/16).int32(message.maxDeliveryAttempts);
                         return writer;
                     };
@@ -4816,7 +5529,7 @@
                     ExpirationPolicy.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.ttl != null && message.hasOwnProperty("ttl"))
+                        if (message.ttl != null && Object.hasOwnProperty.call(message, "ttl"))
                             $root.google.protobuf.Duration.encode(message.ttl, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
                         return writer;
                     };
@@ -5041,12 +5754,12 @@
                     PushConfig.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.pushEndpoint != null && message.hasOwnProperty("pushEndpoint"))
+                        if (message.pushEndpoint != null && Object.hasOwnProperty.call(message, "pushEndpoint"))
                             writer.uint32(/* id 1, wireType 2 =*/10).string(message.pushEndpoint);
-                        if (message.attributes != null && message.hasOwnProperty("attributes"))
+                        if (message.attributes != null && Object.hasOwnProperty.call(message, "attributes"))
                             for (var keys = Object.keys(message.attributes), i = 0; i < keys.length; ++i)
                                 writer.uint32(/* id 2, wireType 2 =*/18).fork().uint32(/* id 1, wireType 2 =*/10).string(keys[i]).uint32(/* id 2, wireType 2 =*/18).string(message.attributes[keys[i]]).ldelim();
-                        if (message.oidcToken != null && message.hasOwnProperty("oidcToken"))
+                        if (message.oidcToken != null && Object.hasOwnProperty.call(message, "oidcToken"))
                             $root.google.pubsub.v1.PushConfig.OidcToken.encode(message.oidcToken, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
                         return writer;
                     };
@@ -5078,7 +5791,7 @@
                     PushConfig.decode = function decode(reader, length) {
                         if (!(reader instanceof $Reader))
                             reader = $Reader.create(reader);
-                        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.google.pubsub.v1.PushConfig(), key;
+                        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.google.pubsub.v1.PushConfig(), key, value;
                         while (reader.pos < end) {
                             var tag = reader.uint32();
                             switch (tag >>> 3) {
@@ -5086,12 +5799,26 @@
                                 message.pushEndpoint = reader.string();
                                 break;
                             case 2:
-                                reader.skip().pos++;
                                 if (message.attributes === $util.emptyObject)
                                     message.attributes = {};
-                                key = reader.string();
-                                reader.pos++;
-                                message.attributes[key] = reader.string();
+                                var end2 = reader.uint32() + reader.pos;
+                                key = "";
+                                value = "";
+                                while (reader.pos < end2) {
+                                    var tag2 = reader.uint32();
+                                    switch (tag2 >>> 3) {
+                                    case 1:
+                                        key = reader.string();
+                                        break;
+                                    case 2:
+                                        value = reader.string();
+                                        break;
+                                    default:
+                                        reader.skipType(tag2 & 7);
+                                        break;
+                                    }
+                                }
+                                message.attributes[key] = value;
                                 break;
                             case 3:
                                 message.oidcToken = $root.google.pubsub.v1.PushConfig.OidcToken.decode(reader, reader.uint32());
@@ -5292,9 +6019,9 @@
                         OidcToken.encode = function encode(message, writer) {
                             if (!writer)
                                 writer = $Writer.create();
-                            if (message.serviceAccountEmail != null && message.hasOwnProperty("serviceAccountEmail"))
+                            if (message.serviceAccountEmail != null && Object.hasOwnProperty.call(message, "serviceAccountEmail"))
                                 writer.uint32(/* id 1, wireType 2 =*/10).string(message.serviceAccountEmail);
-                            if (message.audience != null && message.hasOwnProperty("audience"))
+                            if (message.audience != null && Object.hasOwnProperty.call(message, "audience"))
                                 writer.uint32(/* id 2, wireType 2 =*/18).string(message.audience);
                             return writer;
                         };
@@ -5514,11 +6241,11 @@
                     ReceivedMessage.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.ackId != null && message.hasOwnProperty("ackId"))
+                        if (message.ackId != null && Object.hasOwnProperty.call(message, "ackId"))
                             writer.uint32(/* id 1, wireType 2 =*/10).string(message.ackId);
-                        if (message.message != null && message.hasOwnProperty("message"))
+                        if (message.message != null && Object.hasOwnProperty.call(message, "message"))
                             $root.google.pubsub.v1.PubsubMessage.encode(message.message, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
-                        if (message.deliveryAttempt != null && message.hasOwnProperty("deliveryAttempt"))
+                        if (message.deliveryAttempt != null && Object.hasOwnProperty.call(message, "deliveryAttempt"))
                             writer.uint32(/* id 3, wireType 0 =*/24).int32(message.deliveryAttempt);
                         return writer;
                     };
@@ -5733,7 +6460,7 @@
                     GetSubscriptionRequest.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.subscription != null && message.hasOwnProperty("subscription"))
+                        if (message.subscription != null && Object.hasOwnProperty.call(message, "subscription"))
                             writer.uint32(/* id 1, wireType 2 =*/10).string(message.subscription);
                         return writer;
                     };
@@ -5929,9 +6656,9 @@
                     UpdateSubscriptionRequest.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.subscription != null && message.hasOwnProperty("subscription"))
+                        if (message.subscription != null && Object.hasOwnProperty.call(message, "subscription"))
                             $root.google.pubsub.v1.Subscription.encode(message.subscription, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
-                        if (message.updateMask != null && message.hasOwnProperty("updateMask"))
+                        if (message.updateMask != null && Object.hasOwnProperty.call(message, "updateMask"))
                             $root.google.protobuf.FieldMask.encode(message.updateMask, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
                         return writer;
                     };
@@ -6158,11 +6885,11 @@
                     ListSubscriptionsRequest.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.project != null && message.hasOwnProperty("project"))
+                        if (message.project != null && Object.hasOwnProperty.call(message, "project"))
                             writer.uint32(/* id 1, wireType 2 =*/10).string(message.project);
-                        if (message.pageSize != null && message.hasOwnProperty("pageSize"))
+                        if (message.pageSize != null && Object.hasOwnProperty.call(message, "pageSize"))
                             writer.uint32(/* id 2, wireType 0 =*/16).int32(message.pageSize);
-                        if (message.pageToken != null && message.hasOwnProperty("pageToken"))
+                        if (message.pageToken != null && Object.hasOwnProperty.call(message, "pageToken"))
                             writer.uint32(/* id 3, wireType 2 =*/26).string(message.pageToken);
                         return writer;
                     };
@@ -6385,7 +7112,7 @@
                         if (message.subscriptions != null && message.subscriptions.length)
                             for (var i = 0; i < message.subscriptions.length; ++i)
                                 $root.google.pubsub.v1.Subscription.encode(message.subscriptions[i], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
-                        if (message.nextPageToken != null && message.hasOwnProperty("nextPageToken"))
+                        if (message.nextPageToken != null && Object.hasOwnProperty.call(message, "nextPageToken"))
                             writer.uint32(/* id 2, wireType 2 =*/18).string(message.nextPageToken);
                         return writer;
                     };
@@ -6603,7 +7330,7 @@
                     DeleteSubscriptionRequest.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.subscription != null && message.hasOwnProperty("subscription"))
+                        if (message.subscription != null && Object.hasOwnProperty.call(message, "subscription"))
                             writer.uint32(/* id 1, wireType 2 =*/10).string(message.subscription);
                         return writer;
                     };
@@ -6799,9 +7526,9 @@
                     ModifyPushConfigRequest.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.subscription != null && message.hasOwnProperty("subscription"))
+                        if (message.subscription != null && Object.hasOwnProperty.call(message, "subscription"))
                             writer.uint32(/* id 1, wireType 2 =*/10).string(message.subscription);
-                        if (message.pushConfig != null && message.hasOwnProperty("pushConfig"))
+                        if (message.pushConfig != null && Object.hasOwnProperty.call(message, "pushConfig"))
                             $root.google.pubsub.v1.PushConfig.encode(message.pushConfig, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
                         return writer;
                     };
@@ -7023,11 +7750,11 @@
                     PullRequest.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.subscription != null && message.hasOwnProperty("subscription"))
+                        if (message.subscription != null && Object.hasOwnProperty.call(message, "subscription"))
                             writer.uint32(/* id 1, wireType 2 =*/10).string(message.subscription);
-                        if (message.returnImmediately != null && message.hasOwnProperty("returnImmediately"))
+                        if (message.returnImmediately != null && Object.hasOwnProperty.call(message, "returnImmediately"))
                             writer.uint32(/* id 2, wireType 0 =*/16).bool(message.returnImmediately);
-                        if (message.maxMessages != null && message.hasOwnProperty("maxMessages"))
+                        if (message.maxMessages != null && Object.hasOwnProperty.call(message, "maxMessages"))
                             writer.uint32(/* id 3, wireType 0 =*/24).int32(message.maxMessages);
                         return writer;
                     };
@@ -7464,9 +8191,9 @@
                     ModifyAckDeadlineRequest.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.subscription != null && message.hasOwnProperty("subscription"))
+                        if (message.subscription != null && Object.hasOwnProperty.call(message, "subscription"))
                             writer.uint32(/* id 1, wireType 2 =*/10).string(message.subscription);
-                        if (message.ackDeadlineSeconds != null && message.hasOwnProperty("ackDeadlineSeconds"))
+                        if (message.ackDeadlineSeconds != null && Object.hasOwnProperty.call(message, "ackDeadlineSeconds"))
                             writer.uint32(/* id 3, wireType 0 =*/24).int32(message.ackDeadlineSeconds);
                         if (message.ackIds != null && message.ackIds.length)
                             for (var i = 0; i < message.ackIds.length; ++i)
@@ -7704,7 +8431,7 @@
                     AcknowledgeRequest.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.subscription != null && message.hasOwnProperty("subscription"))
+                        if (message.subscription != null && Object.hasOwnProperty.call(message, "subscription"))
                             writer.uint32(/* id 1, wireType 2 =*/10).string(message.subscription);
                         if (message.ackIds != null && message.ackIds.length)
                             for (var i = 0; i < message.ackIds.length; ++i)
@@ -7876,6 +8603,8 @@
                      * @property {Array.<string>|null} [modifyDeadlineAckIds] StreamingPullRequest modifyDeadlineAckIds
                      * @property {number|null} [streamAckDeadlineSeconds] StreamingPullRequest streamAckDeadlineSeconds
                      * @property {string|null} [clientId] StreamingPullRequest clientId
+                     * @property {number|Long|null} [maxOutstandingMessages] StreamingPullRequest maxOutstandingMessages
+                     * @property {number|Long|null} [maxOutstandingBytes] StreamingPullRequest maxOutstandingBytes
                      */
     
                     /**
@@ -7945,6 +8674,22 @@
                     StreamingPullRequest.prototype.clientId = "";
     
                     /**
+                     * StreamingPullRequest maxOutstandingMessages.
+                     * @member {number|Long} maxOutstandingMessages
+                     * @memberof google.pubsub.v1.StreamingPullRequest
+                     * @instance
+                     */
+                    StreamingPullRequest.prototype.maxOutstandingMessages = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+    
+                    /**
+                     * StreamingPullRequest maxOutstandingBytes.
+                     * @member {number|Long} maxOutstandingBytes
+                     * @memberof google.pubsub.v1.StreamingPullRequest
+                     * @instance
+                     */
+                    StreamingPullRequest.prototype.maxOutstandingBytes = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+    
+                    /**
                      * Creates a new StreamingPullRequest instance using the specified properties.
                      * @function create
                      * @memberof google.pubsub.v1.StreamingPullRequest
@@ -7968,7 +8713,7 @@
                     StreamingPullRequest.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.subscription != null && message.hasOwnProperty("subscription"))
+                        if (message.subscription != null && Object.hasOwnProperty.call(message, "subscription"))
                             writer.uint32(/* id 1, wireType 2 =*/10).string(message.subscription);
                         if (message.ackIds != null && message.ackIds.length)
                             for (var i = 0; i < message.ackIds.length; ++i)
@@ -7982,10 +8727,14 @@
                         if (message.modifyDeadlineAckIds != null && message.modifyDeadlineAckIds.length)
                             for (var i = 0; i < message.modifyDeadlineAckIds.length; ++i)
                                 writer.uint32(/* id 4, wireType 2 =*/34).string(message.modifyDeadlineAckIds[i]);
-                        if (message.streamAckDeadlineSeconds != null && message.hasOwnProperty("streamAckDeadlineSeconds"))
+                        if (message.streamAckDeadlineSeconds != null && Object.hasOwnProperty.call(message, "streamAckDeadlineSeconds"))
                             writer.uint32(/* id 5, wireType 0 =*/40).int32(message.streamAckDeadlineSeconds);
-                        if (message.clientId != null && message.hasOwnProperty("clientId"))
+                        if (message.clientId != null && Object.hasOwnProperty.call(message, "clientId"))
                             writer.uint32(/* id 6, wireType 2 =*/50).string(message.clientId);
+                        if (message.maxOutstandingMessages != null && Object.hasOwnProperty.call(message, "maxOutstandingMessages"))
+                            writer.uint32(/* id 7, wireType 0 =*/56).int64(message.maxOutstandingMessages);
+                        if (message.maxOutstandingBytes != null && Object.hasOwnProperty.call(message, "maxOutstandingBytes"))
+                            writer.uint32(/* id 8, wireType 0 =*/64).int64(message.maxOutstandingBytes);
                         return writer;
                     };
     
@@ -8048,6 +8797,12 @@
                                 break;
                             case 6:
                                 message.clientId = reader.string();
+                                break;
+                            case 7:
+                                message.maxOutstandingMessages = reader.int64();
+                                break;
+                            case 8:
+                                message.maxOutstandingBytes = reader.int64();
                                 break;
                             default:
                                 reader.skipType(tag & 7);
@@ -8114,6 +8869,12 @@
                         if (message.clientId != null && message.hasOwnProperty("clientId"))
                             if (!$util.isString(message.clientId))
                                 return "clientId: string expected";
+                        if (message.maxOutstandingMessages != null && message.hasOwnProperty("maxOutstandingMessages"))
+                            if (!$util.isInteger(message.maxOutstandingMessages) && !(message.maxOutstandingMessages && $util.isInteger(message.maxOutstandingMessages.low) && $util.isInteger(message.maxOutstandingMessages.high)))
+                                return "maxOutstandingMessages: integer|Long expected";
+                        if (message.maxOutstandingBytes != null && message.hasOwnProperty("maxOutstandingBytes"))
+                            if (!$util.isInteger(message.maxOutstandingBytes) && !(message.maxOutstandingBytes && $util.isInteger(message.maxOutstandingBytes.low) && $util.isInteger(message.maxOutstandingBytes.high)))
+                                return "maxOutstandingBytes: integer|Long expected";
                         return null;
                     };
     
@@ -8156,6 +8917,24 @@
                             message.streamAckDeadlineSeconds = object.streamAckDeadlineSeconds | 0;
                         if (object.clientId != null)
                             message.clientId = String(object.clientId);
+                        if (object.maxOutstandingMessages != null)
+                            if ($util.Long)
+                                (message.maxOutstandingMessages = $util.Long.fromValue(object.maxOutstandingMessages)).unsigned = false;
+                            else if (typeof object.maxOutstandingMessages === "string")
+                                message.maxOutstandingMessages = parseInt(object.maxOutstandingMessages, 10);
+                            else if (typeof object.maxOutstandingMessages === "number")
+                                message.maxOutstandingMessages = object.maxOutstandingMessages;
+                            else if (typeof object.maxOutstandingMessages === "object")
+                                message.maxOutstandingMessages = new $util.LongBits(object.maxOutstandingMessages.low >>> 0, object.maxOutstandingMessages.high >>> 0).toNumber();
+                        if (object.maxOutstandingBytes != null)
+                            if ($util.Long)
+                                (message.maxOutstandingBytes = $util.Long.fromValue(object.maxOutstandingBytes)).unsigned = false;
+                            else if (typeof object.maxOutstandingBytes === "string")
+                                message.maxOutstandingBytes = parseInt(object.maxOutstandingBytes, 10);
+                            else if (typeof object.maxOutstandingBytes === "number")
+                                message.maxOutstandingBytes = object.maxOutstandingBytes;
+                            else if (typeof object.maxOutstandingBytes === "object")
+                                message.maxOutstandingBytes = new $util.LongBits(object.maxOutstandingBytes.low >>> 0, object.maxOutstandingBytes.high >>> 0).toNumber();
                         return message;
                     };
     
@@ -8181,6 +8960,16 @@
                             object.subscription = "";
                             object.streamAckDeadlineSeconds = 0;
                             object.clientId = "";
+                            if ($util.Long) {
+                                var long = new $util.Long(0, 0, false);
+                                object.maxOutstandingMessages = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+                            } else
+                                object.maxOutstandingMessages = options.longs === String ? "0" : 0;
+                            if ($util.Long) {
+                                var long = new $util.Long(0, 0, false);
+                                object.maxOutstandingBytes = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+                            } else
+                                object.maxOutstandingBytes = options.longs === String ? "0" : 0;
                         }
                         if (message.subscription != null && message.hasOwnProperty("subscription"))
                             object.subscription = message.subscription;
@@ -8203,6 +8992,16 @@
                             object.streamAckDeadlineSeconds = message.streamAckDeadlineSeconds;
                         if (message.clientId != null && message.hasOwnProperty("clientId"))
                             object.clientId = message.clientId;
+                        if (message.maxOutstandingMessages != null && message.hasOwnProperty("maxOutstandingMessages"))
+                            if (typeof message.maxOutstandingMessages === "number")
+                                object.maxOutstandingMessages = options.longs === String ? String(message.maxOutstandingMessages) : message.maxOutstandingMessages;
+                            else
+                                object.maxOutstandingMessages = options.longs === String ? $util.Long.prototype.toString.call(message.maxOutstandingMessages) : options.longs === Number ? new $util.LongBits(message.maxOutstandingMessages.low >>> 0, message.maxOutstandingMessages.high >>> 0).toNumber() : message.maxOutstandingMessages;
+                        if (message.maxOutstandingBytes != null && message.hasOwnProperty("maxOutstandingBytes"))
+                            if (typeof message.maxOutstandingBytes === "number")
+                                object.maxOutstandingBytes = options.longs === String ? String(message.maxOutstandingBytes) : message.maxOutstandingBytes;
+                            else
+                                object.maxOutstandingBytes = options.longs === String ? $util.Long.prototype.toString.call(message.maxOutstandingBytes) : options.longs === Number ? new $util.LongBits(message.maxOutstandingBytes.low >>> 0, message.maxOutstandingBytes.high >>> 0).toNumber() : message.maxOutstandingBytes;
                         return object;
                     };
     
@@ -8503,11 +9302,11 @@
                     CreateSnapshotRequest.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.name != null && message.hasOwnProperty("name"))
+                        if (message.name != null && Object.hasOwnProperty.call(message, "name"))
                             writer.uint32(/* id 1, wireType 2 =*/10).string(message.name);
-                        if (message.subscription != null && message.hasOwnProperty("subscription"))
+                        if (message.subscription != null && Object.hasOwnProperty.call(message, "subscription"))
                             writer.uint32(/* id 2, wireType 2 =*/18).string(message.subscription);
-                        if (message.labels != null && message.hasOwnProperty("labels"))
+                        if (message.labels != null && Object.hasOwnProperty.call(message, "labels"))
                             for (var keys = Object.keys(message.labels), i = 0; i < keys.length; ++i)
                                 writer.uint32(/* id 3, wireType 2 =*/26).fork().uint32(/* id 1, wireType 2 =*/10).string(keys[i]).uint32(/* id 2, wireType 2 =*/18).string(message.labels[keys[i]]).ldelim();
                         return writer;
@@ -8540,7 +9339,7 @@
                     CreateSnapshotRequest.decode = function decode(reader, length) {
                         if (!(reader instanceof $Reader))
                             reader = $Reader.create(reader);
-                        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.google.pubsub.v1.CreateSnapshotRequest(), key;
+                        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.google.pubsub.v1.CreateSnapshotRequest(), key, value;
                         while (reader.pos < end) {
                             var tag = reader.uint32();
                             switch (tag >>> 3) {
@@ -8551,12 +9350,26 @@
                                 message.subscription = reader.string();
                                 break;
                             case 3:
-                                reader.skip().pos++;
                                 if (message.labels === $util.emptyObject)
                                     message.labels = {};
-                                key = reader.string();
-                                reader.pos++;
-                                message.labels[key] = reader.string();
+                                var end2 = reader.uint32() + reader.pos;
+                                key = "";
+                                value = "";
+                                while (reader.pos < end2) {
+                                    var tag2 = reader.uint32();
+                                    switch (tag2 >>> 3) {
+                                    case 1:
+                                        key = reader.string();
+                                        break;
+                                    case 2:
+                                        value = reader.string();
+                                        break;
+                                    default:
+                                        reader.skipType(tag2 & 7);
+                                        break;
+                                    }
+                                }
+                                message.labels[key] = value;
                                 break;
                             default:
                                 reader.skipType(tag & 7);
@@ -8747,9 +9560,9 @@
                     UpdateSnapshotRequest.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.snapshot != null && message.hasOwnProperty("snapshot"))
+                        if (message.snapshot != null && Object.hasOwnProperty.call(message, "snapshot"))
                             $root.google.pubsub.v1.Snapshot.encode(message.snapshot, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
-                        if (message.updateMask != null && message.hasOwnProperty("updateMask"))
+                        if (message.updateMask != null && Object.hasOwnProperty.call(message, "updateMask"))
                             $root.google.protobuf.FieldMask.encode(message.updateMask, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
                         return writer;
                     };
@@ -8986,13 +9799,13 @@
                     Snapshot.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.name != null && message.hasOwnProperty("name"))
+                        if (message.name != null && Object.hasOwnProperty.call(message, "name"))
                             writer.uint32(/* id 1, wireType 2 =*/10).string(message.name);
-                        if (message.topic != null && message.hasOwnProperty("topic"))
+                        if (message.topic != null && Object.hasOwnProperty.call(message, "topic"))
                             writer.uint32(/* id 2, wireType 2 =*/18).string(message.topic);
-                        if (message.expireTime != null && message.hasOwnProperty("expireTime"))
+                        if (message.expireTime != null && Object.hasOwnProperty.call(message, "expireTime"))
                             $root.google.protobuf.Timestamp.encode(message.expireTime, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
-                        if (message.labels != null && message.hasOwnProperty("labels"))
+                        if (message.labels != null && Object.hasOwnProperty.call(message, "labels"))
                             for (var keys = Object.keys(message.labels), i = 0; i < keys.length; ++i)
                                 writer.uint32(/* id 4, wireType 2 =*/34).fork().uint32(/* id 1, wireType 2 =*/10).string(keys[i]).uint32(/* id 2, wireType 2 =*/18).string(message.labels[keys[i]]).ldelim();
                         return writer;
@@ -9025,7 +9838,7 @@
                     Snapshot.decode = function decode(reader, length) {
                         if (!(reader instanceof $Reader))
                             reader = $Reader.create(reader);
-                        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.google.pubsub.v1.Snapshot(), key;
+                        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.google.pubsub.v1.Snapshot(), key, value;
                         while (reader.pos < end) {
                             var tag = reader.uint32();
                             switch (tag >>> 3) {
@@ -9039,12 +9852,26 @@
                                 message.expireTime = $root.google.protobuf.Timestamp.decode(reader, reader.uint32());
                                 break;
                             case 4:
-                                reader.skip().pos++;
                                 if (message.labels === $util.emptyObject)
                                     message.labels = {};
-                                key = reader.string();
-                                reader.pos++;
-                                message.labels[key] = reader.string();
+                                var end2 = reader.uint32() + reader.pos;
+                                key = "";
+                                value = "";
+                                while (reader.pos < end2) {
+                                    var tag2 = reader.uint32();
+                                    switch (tag2 >>> 3) {
+                                    case 1:
+                                        key = reader.string();
+                                        break;
+                                    case 2:
+                                        value = reader.string();
+                                        break;
+                                    default:
+                                        reader.skipType(tag2 & 7);
+                                        break;
+                                    }
+                                }
+                                message.labels[key] = value;
                                 break;
                             default:
                                 reader.skipType(tag & 7);
@@ -9239,7 +10066,7 @@
                     GetSnapshotRequest.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.snapshot != null && message.hasOwnProperty("snapshot"))
+                        if (message.snapshot != null && Object.hasOwnProperty.call(message, "snapshot"))
                             writer.uint32(/* id 1, wireType 2 =*/10).string(message.snapshot);
                         return writer;
                     };
@@ -9444,11 +10271,11 @@
                     ListSnapshotsRequest.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.project != null && message.hasOwnProperty("project"))
+                        if (message.project != null && Object.hasOwnProperty.call(message, "project"))
                             writer.uint32(/* id 1, wireType 2 =*/10).string(message.project);
-                        if (message.pageSize != null && message.hasOwnProperty("pageSize"))
+                        if (message.pageSize != null && Object.hasOwnProperty.call(message, "pageSize"))
                             writer.uint32(/* id 2, wireType 0 =*/16).int32(message.pageSize);
-                        if (message.pageToken != null && message.hasOwnProperty("pageToken"))
+                        if (message.pageToken != null && Object.hasOwnProperty.call(message, "pageToken"))
                             writer.uint32(/* id 3, wireType 2 =*/26).string(message.pageToken);
                         return writer;
                     };
@@ -9671,7 +10498,7 @@
                         if (message.snapshots != null && message.snapshots.length)
                             for (var i = 0; i < message.snapshots.length; ++i)
                                 $root.google.pubsub.v1.Snapshot.encode(message.snapshots[i], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
-                        if (message.nextPageToken != null && message.hasOwnProperty("nextPageToken"))
+                        if (message.nextPageToken != null && Object.hasOwnProperty.call(message, "nextPageToken"))
                             writer.uint32(/* id 2, wireType 2 =*/18).string(message.nextPageToken);
                         return writer;
                     };
@@ -9889,7 +10716,7 @@
                     DeleteSnapshotRequest.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.snapshot != null && message.hasOwnProperty("snapshot"))
+                        if (message.snapshot != null && Object.hasOwnProperty.call(message, "snapshot"))
                             writer.uint32(/* id 1, wireType 2 =*/10).string(message.snapshot);
                         return writer;
                     };
@@ -10108,11 +10935,11 @@
                     SeekRequest.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.subscription != null && message.hasOwnProperty("subscription"))
+                        if (message.subscription != null && Object.hasOwnProperty.call(message, "subscription"))
                             writer.uint32(/* id 1, wireType 2 =*/10).string(message.subscription);
-                        if (message.time != null && message.hasOwnProperty("time"))
+                        if (message.time != null && Object.hasOwnProperty.call(message, "time"))
                             $root.google.protobuf.Timestamp.encode(message.time, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
-                        if (message.snapshot != null && message.hasOwnProperty("snapshot"))
+                        if (message.snapshot != null && Object.hasOwnProperty.call(message, "snapshot"))
                             writer.uint32(/* id 3, wireType 2 =*/26).string(message.snapshot);
                         return writer;
                     };
@@ -10526,7 +11353,7 @@
                     if (message.rules != null && message.rules.length)
                         for (var i = 0; i < message.rules.length; ++i)
                             $root.google.api.HttpRule.encode(message.rules[i], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
-                    if (message.fullyDecodeReservedExpansion != null && message.hasOwnProperty("fullyDecodeReservedExpansion"))
+                    if (message.fullyDecodeReservedExpansion != null && Object.hasOwnProperty.call(message, "fullyDecodeReservedExpansion"))
                         writer.uint32(/* id 2, wireType 0 =*/16).bool(message.fullyDecodeReservedExpansion);
                     return writer;
                 };
@@ -10840,26 +11667,26 @@
                 HttpRule.encode = function encode(message, writer) {
                     if (!writer)
                         writer = $Writer.create();
-                    if (message.selector != null && message.hasOwnProperty("selector"))
+                    if (message.selector != null && Object.hasOwnProperty.call(message, "selector"))
                         writer.uint32(/* id 1, wireType 2 =*/10).string(message.selector);
-                    if (message.get != null && message.hasOwnProperty("get"))
+                    if (message.get != null && Object.hasOwnProperty.call(message, "get"))
                         writer.uint32(/* id 2, wireType 2 =*/18).string(message.get);
-                    if (message.put != null && message.hasOwnProperty("put"))
+                    if (message.put != null && Object.hasOwnProperty.call(message, "put"))
                         writer.uint32(/* id 3, wireType 2 =*/26).string(message.put);
-                    if (message.post != null && message.hasOwnProperty("post"))
+                    if (message.post != null && Object.hasOwnProperty.call(message, "post"))
                         writer.uint32(/* id 4, wireType 2 =*/34).string(message.post);
-                    if (message["delete"] != null && message.hasOwnProperty("delete"))
+                    if (message["delete"] != null && Object.hasOwnProperty.call(message, "delete"))
                         writer.uint32(/* id 5, wireType 2 =*/42).string(message["delete"]);
-                    if (message.patch != null && message.hasOwnProperty("patch"))
+                    if (message.patch != null && Object.hasOwnProperty.call(message, "patch"))
                         writer.uint32(/* id 6, wireType 2 =*/50).string(message.patch);
-                    if (message.body != null && message.hasOwnProperty("body"))
+                    if (message.body != null && Object.hasOwnProperty.call(message, "body"))
                         writer.uint32(/* id 7, wireType 2 =*/58).string(message.body);
-                    if (message.custom != null && message.hasOwnProperty("custom"))
+                    if (message.custom != null && Object.hasOwnProperty.call(message, "custom"))
                         $root.google.api.CustomHttpPattern.encode(message.custom, writer.uint32(/* id 8, wireType 2 =*/66).fork()).ldelim();
                     if (message.additionalBindings != null && message.additionalBindings.length)
                         for (var i = 0; i < message.additionalBindings.length; ++i)
                             $root.google.api.HttpRule.encode(message.additionalBindings[i], writer.uint32(/* id 11, wireType 2 =*/90).fork()).ldelim();
-                    if (message.responseBody != null && message.hasOwnProperty("responseBody"))
+                    if (message.responseBody != null && Object.hasOwnProperty.call(message, "responseBody"))
                         writer.uint32(/* id 12, wireType 2 =*/98).string(message.responseBody);
                     return writer;
                 };
@@ -11216,9 +12043,9 @@
                 CustomHttpPattern.encode = function encode(message, writer) {
                     if (!writer)
                         writer = $Writer.create();
-                    if (message.kind != null && message.hasOwnProperty("kind"))
+                    if (message.kind != null && Object.hasOwnProperty.call(message, "kind"))
                         writer.uint32(/* id 1, wireType 2 =*/10).string(message.kind);
-                    if (message.path != null && message.hasOwnProperty("path"))
+                    if (message.path != null && Object.hasOwnProperty.call(message, "path"))
                         writer.uint32(/* id 2, wireType 2 =*/18).string(message.path);
                     return writer;
                 };
@@ -11359,6 +12186,587 @@
                 };
     
                 return CustomHttpPattern;
+            })();
+    
+            /**
+             * FieldBehavior enum.
+             * @name google.api.FieldBehavior
+             * @enum {number}
+             * @property {number} FIELD_BEHAVIOR_UNSPECIFIED=0 FIELD_BEHAVIOR_UNSPECIFIED value
+             * @property {number} OPTIONAL=1 OPTIONAL value
+             * @property {number} REQUIRED=2 REQUIRED value
+             * @property {number} OUTPUT_ONLY=3 OUTPUT_ONLY value
+             * @property {number} INPUT_ONLY=4 INPUT_ONLY value
+             * @property {number} IMMUTABLE=5 IMMUTABLE value
+             */
+            api.FieldBehavior = (function() {
+                var valuesById = {}, values = Object.create(valuesById);
+                values[valuesById[0] = "FIELD_BEHAVIOR_UNSPECIFIED"] = 0;
+                values[valuesById[1] = "OPTIONAL"] = 1;
+                values[valuesById[2] = "REQUIRED"] = 2;
+                values[valuesById[3] = "OUTPUT_ONLY"] = 3;
+                values[valuesById[4] = "INPUT_ONLY"] = 4;
+                values[valuesById[5] = "IMMUTABLE"] = 5;
+                return values;
+            })();
+    
+            api.ResourceDescriptor = (function() {
+    
+                /**
+                 * Properties of a ResourceDescriptor.
+                 * @memberof google.api
+                 * @interface IResourceDescriptor
+                 * @property {string|null} [type] ResourceDescriptor type
+                 * @property {Array.<string>|null} [pattern] ResourceDescriptor pattern
+                 * @property {string|null} [nameField] ResourceDescriptor nameField
+                 * @property {google.api.ResourceDescriptor.History|null} [history] ResourceDescriptor history
+                 * @property {string|null} [plural] ResourceDescriptor plural
+                 * @property {string|null} [singular] ResourceDescriptor singular
+                 */
+    
+                /**
+                 * Constructs a new ResourceDescriptor.
+                 * @memberof google.api
+                 * @classdesc Represents a ResourceDescriptor.
+                 * @implements IResourceDescriptor
+                 * @constructor
+                 * @param {google.api.IResourceDescriptor=} [properties] Properties to set
+                 */
+                function ResourceDescriptor(properties) {
+                    this.pattern = [];
+                    if (properties)
+                        for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                            if (properties[keys[i]] != null)
+                                this[keys[i]] = properties[keys[i]];
+                }
+    
+                /**
+                 * ResourceDescriptor type.
+                 * @member {string} type
+                 * @memberof google.api.ResourceDescriptor
+                 * @instance
+                 */
+                ResourceDescriptor.prototype.type = "";
+    
+                /**
+                 * ResourceDescriptor pattern.
+                 * @member {Array.<string>} pattern
+                 * @memberof google.api.ResourceDescriptor
+                 * @instance
+                 */
+                ResourceDescriptor.prototype.pattern = $util.emptyArray;
+    
+                /**
+                 * ResourceDescriptor nameField.
+                 * @member {string} nameField
+                 * @memberof google.api.ResourceDescriptor
+                 * @instance
+                 */
+                ResourceDescriptor.prototype.nameField = "";
+    
+                /**
+                 * ResourceDescriptor history.
+                 * @member {google.api.ResourceDescriptor.History} history
+                 * @memberof google.api.ResourceDescriptor
+                 * @instance
+                 */
+                ResourceDescriptor.prototype.history = 0;
+    
+                /**
+                 * ResourceDescriptor plural.
+                 * @member {string} plural
+                 * @memberof google.api.ResourceDescriptor
+                 * @instance
+                 */
+                ResourceDescriptor.prototype.plural = "";
+    
+                /**
+                 * ResourceDescriptor singular.
+                 * @member {string} singular
+                 * @memberof google.api.ResourceDescriptor
+                 * @instance
+                 */
+                ResourceDescriptor.prototype.singular = "";
+    
+                /**
+                 * Creates a new ResourceDescriptor instance using the specified properties.
+                 * @function create
+                 * @memberof google.api.ResourceDescriptor
+                 * @static
+                 * @param {google.api.IResourceDescriptor=} [properties] Properties to set
+                 * @returns {google.api.ResourceDescriptor} ResourceDescriptor instance
+                 */
+                ResourceDescriptor.create = function create(properties) {
+                    return new ResourceDescriptor(properties);
+                };
+    
+                /**
+                 * Encodes the specified ResourceDescriptor message. Does not implicitly {@link google.api.ResourceDescriptor.verify|verify} messages.
+                 * @function encode
+                 * @memberof google.api.ResourceDescriptor
+                 * @static
+                 * @param {google.api.IResourceDescriptor} message ResourceDescriptor message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                ResourceDescriptor.encode = function encode(message, writer) {
+                    if (!writer)
+                        writer = $Writer.create();
+                    if (message.type != null && Object.hasOwnProperty.call(message, "type"))
+                        writer.uint32(/* id 1, wireType 2 =*/10).string(message.type);
+                    if (message.pattern != null && message.pattern.length)
+                        for (var i = 0; i < message.pattern.length; ++i)
+                            writer.uint32(/* id 2, wireType 2 =*/18).string(message.pattern[i]);
+                    if (message.nameField != null && Object.hasOwnProperty.call(message, "nameField"))
+                        writer.uint32(/* id 3, wireType 2 =*/26).string(message.nameField);
+                    if (message.history != null && Object.hasOwnProperty.call(message, "history"))
+                        writer.uint32(/* id 4, wireType 0 =*/32).int32(message.history);
+                    if (message.plural != null && Object.hasOwnProperty.call(message, "plural"))
+                        writer.uint32(/* id 5, wireType 2 =*/42).string(message.plural);
+                    if (message.singular != null && Object.hasOwnProperty.call(message, "singular"))
+                        writer.uint32(/* id 6, wireType 2 =*/50).string(message.singular);
+                    return writer;
+                };
+    
+                /**
+                 * Encodes the specified ResourceDescriptor message, length delimited. Does not implicitly {@link google.api.ResourceDescriptor.verify|verify} messages.
+                 * @function encodeDelimited
+                 * @memberof google.api.ResourceDescriptor
+                 * @static
+                 * @param {google.api.IResourceDescriptor} message ResourceDescriptor message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                ResourceDescriptor.encodeDelimited = function encodeDelimited(message, writer) {
+                    return this.encode(message, writer).ldelim();
+                };
+    
+                /**
+                 * Decodes a ResourceDescriptor message from the specified reader or buffer.
+                 * @function decode
+                 * @memberof google.api.ResourceDescriptor
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @param {number} [length] Message length if known beforehand
+                 * @returns {google.api.ResourceDescriptor} ResourceDescriptor
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                ResourceDescriptor.decode = function decode(reader, length) {
+                    if (!(reader instanceof $Reader))
+                        reader = $Reader.create(reader);
+                    var end = length === undefined ? reader.len : reader.pos + length, message = new $root.google.api.ResourceDescriptor();
+                    while (reader.pos < end) {
+                        var tag = reader.uint32();
+                        switch (tag >>> 3) {
+                        case 1:
+                            message.type = reader.string();
+                            break;
+                        case 2:
+                            if (!(message.pattern && message.pattern.length))
+                                message.pattern = [];
+                            message.pattern.push(reader.string());
+                            break;
+                        case 3:
+                            message.nameField = reader.string();
+                            break;
+                        case 4:
+                            message.history = reader.int32();
+                            break;
+                        case 5:
+                            message.plural = reader.string();
+                            break;
+                        case 6:
+                            message.singular = reader.string();
+                            break;
+                        default:
+                            reader.skipType(tag & 7);
+                            break;
+                        }
+                    }
+                    return message;
+                };
+    
+                /**
+                 * Decodes a ResourceDescriptor message from the specified reader or buffer, length delimited.
+                 * @function decodeDelimited
+                 * @memberof google.api.ResourceDescriptor
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @returns {google.api.ResourceDescriptor} ResourceDescriptor
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                ResourceDescriptor.decodeDelimited = function decodeDelimited(reader) {
+                    if (!(reader instanceof $Reader))
+                        reader = new $Reader(reader);
+                    return this.decode(reader, reader.uint32());
+                };
+    
+                /**
+                 * Verifies a ResourceDescriptor message.
+                 * @function verify
+                 * @memberof google.api.ResourceDescriptor
+                 * @static
+                 * @param {Object.<string,*>} message Plain object to verify
+                 * @returns {string|null} `null` if valid, otherwise the reason why it is not
+                 */
+                ResourceDescriptor.verify = function verify(message) {
+                    if (typeof message !== "object" || message === null)
+                        return "object expected";
+                    if (message.type != null && message.hasOwnProperty("type"))
+                        if (!$util.isString(message.type))
+                            return "type: string expected";
+                    if (message.pattern != null && message.hasOwnProperty("pattern")) {
+                        if (!Array.isArray(message.pattern))
+                            return "pattern: array expected";
+                        for (var i = 0; i < message.pattern.length; ++i)
+                            if (!$util.isString(message.pattern[i]))
+                                return "pattern: string[] expected";
+                    }
+                    if (message.nameField != null && message.hasOwnProperty("nameField"))
+                        if (!$util.isString(message.nameField))
+                            return "nameField: string expected";
+                    if (message.history != null && message.hasOwnProperty("history"))
+                        switch (message.history) {
+                        default:
+                            return "history: enum value expected";
+                        case 0:
+                        case 1:
+                        case 2:
+                            break;
+                        }
+                    if (message.plural != null && message.hasOwnProperty("plural"))
+                        if (!$util.isString(message.plural))
+                            return "plural: string expected";
+                    if (message.singular != null && message.hasOwnProperty("singular"))
+                        if (!$util.isString(message.singular))
+                            return "singular: string expected";
+                    return null;
+                };
+    
+                /**
+                 * Creates a ResourceDescriptor message from a plain object. Also converts values to their respective internal types.
+                 * @function fromObject
+                 * @memberof google.api.ResourceDescriptor
+                 * @static
+                 * @param {Object.<string,*>} object Plain object
+                 * @returns {google.api.ResourceDescriptor} ResourceDescriptor
+                 */
+                ResourceDescriptor.fromObject = function fromObject(object) {
+                    if (object instanceof $root.google.api.ResourceDescriptor)
+                        return object;
+                    var message = new $root.google.api.ResourceDescriptor();
+                    if (object.type != null)
+                        message.type = String(object.type);
+                    if (object.pattern) {
+                        if (!Array.isArray(object.pattern))
+                            throw TypeError(".google.api.ResourceDescriptor.pattern: array expected");
+                        message.pattern = [];
+                        for (var i = 0; i < object.pattern.length; ++i)
+                            message.pattern[i] = String(object.pattern[i]);
+                    }
+                    if (object.nameField != null)
+                        message.nameField = String(object.nameField);
+                    switch (object.history) {
+                    case "HISTORY_UNSPECIFIED":
+                    case 0:
+                        message.history = 0;
+                        break;
+                    case "ORIGINALLY_SINGLE_PATTERN":
+                    case 1:
+                        message.history = 1;
+                        break;
+                    case "FUTURE_MULTI_PATTERN":
+                    case 2:
+                        message.history = 2;
+                        break;
+                    }
+                    if (object.plural != null)
+                        message.plural = String(object.plural);
+                    if (object.singular != null)
+                        message.singular = String(object.singular);
+                    return message;
+                };
+    
+                /**
+                 * Creates a plain object from a ResourceDescriptor message. Also converts values to other types if specified.
+                 * @function toObject
+                 * @memberof google.api.ResourceDescriptor
+                 * @static
+                 * @param {google.api.ResourceDescriptor} message ResourceDescriptor
+                 * @param {$protobuf.IConversionOptions} [options] Conversion options
+                 * @returns {Object.<string,*>} Plain object
+                 */
+                ResourceDescriptor.toObject = function toObject(message, options) {
+                    if (!options)
+                        options = {};
+                    var object = {};
+                    if (options.arrays || options.defaults)
+                        object.pattern = [];
+                    if (options.defaults) {
+                        object.type = "";
+                        object.nameField = "";
+                        object.history = options.enums === String ? "HISTORY_UNSPECIFIED" : 0;
+                        object.plural = "";
+                        object.singular = "";
+                    }
+                    if (message.type != null && message.hasOwnProperty("type"))
+                        object.type = message.type;
+                    if (message.pattern && message.pattern.length) {
+                        object.pattern = [];
+                        for (var j = 0; j < message.pattern.length; ++j)
+                            object.pattern[j] = message.pattern[j];
+                    }
+                    if (message.nameField != null && message.hasOwnProperty("nameField"))
+                        object.nameField = message.nameField;
+                    if (message.history != null && message.hasOwnProperty("history"))
+                        object.history = options.enums === String ? $root.google.api.ResourceDescriptor.History[message.history] : message.history;
+                    if (message.plural != null && message.hasOwnProperty("plural"))
+                        object.plural = message.plural;
+                    if (message.singular != null && message.hasOwnProperty("singular"))
+                        object.singular = message.singular;
+                    return object;
+                };
+    
+                /**
+                 * Converts this ResourceDescriptor to JSON.
+                 * @function toJSON
+                 * @memberof google.api.ResourceDescriptor
+                 * @instance
+                 * @returns {Object.<string,*>} JSON object
+                 */
+                ResourceDescriptor.prototype.toJSON = function toJSON() {
+                    return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+                };
+    
+                /**
+                 * History enum.
+                 * @name google.api.ResourceDescriptor.History
+                 * @enum {number}
+                 * @property {number} HISTORY_UNSPECIFIED=0 HISTORY_UNSPECIFIED value
+                 * @property {number} ORIGINALLY_SINGLE_PATTERN=1 ORIGINALLY_SINGLE_PATTERN value
+                 * @property {number} FUTURE_MULTI_PATTERN=2 FUTURE_MULTI_PATTERN value
+                 */
+                ResourceDescriptor.History = (function() {
+                    var valuesById = {}, values = Object.create(valuesById);
+                    values[valuesById[0] = "HISTORY_UNSPECIFIED"] = 0;
+                    values[valuesById[1] = "ORIGINALLY_SINGLE_PATTERN"] = 1;
+                    values[valuesById[2] = "FUTURE_MULTI_PATTERN"] = 2;
+                    return values;
+                })();
+    
+                return ResourceDescriptor;
+            })();
+    
+            api.ResourceReference = (function() {
+    
+                /**
+                 * Properties of a ResourceReference.
+                 * @memberof google.api
+                 * @interface IResourceReference
+                 * @property {string|null} [type] ResourceReference type
+                 * @property {string|null} [childType] ResourceReference childType
+                 */
+    
+                /**
+                 * Constructs a new ResourceReference.
+                 * @memberof google.api
+                 * @classdesc Represents a ResourceReference.
+                 * @implements IResourceReference
+                 * @constructor
+                 * @param {google.api.IResourceReference=} [properties] Properties to set
+                 */
+                function ResourceReference(properties) {
+                    if (properties)
+                        for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                            if (properties[keys[i]] != null)
+                                this[keys[i]] = properties[keys[i]];
+                }
+    
+                /**
+                 * ResourceReference type.
+                 * @member {string} type
+                 * @memberof google.api.ResourceReference
+                 * @instance
+                 */
+                ResourceReference.prototype.type = "";
+    
+                /**
+                 * ResourceReference childType.
+                 * @member {string} childType
+                 * @memberof google.api.ResourceReference
+                 * @instance
+                 */
+                ResourceReference.prototype.childType = "";
+    
+                /**
+                 * Creates a new ResourceReference instance using the specified properties.
+                 * @function create
+                 * @memberof google.api.ResourceReference
+                 * @static
+                 * @param {google.api.IResourceReference=} [properties] Properties to set
+                 * @returns {google.api.ResourceReference} ResourceReference instance
+                 */
+                ResourceReference.create = function create(properties) {
+                    return new ResourceReference(properties);
+                };
+    
+                /**
+                 * Encodes the specified ResourceReference message. Does not implicitly {@link google.api.ResourceReference.verify|verify} messages.
+                 * @function encode
+                 * @memberof google.api.ResourceReference
+                 * @static
+                 * @param {google.api.IResourceReference} message ResourceReference message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                ResourceReference.encode = function encode(message, writer) {
+                    if (!writer)
+                        writer = $Writer.create();
+                    if (message.type != null && Object.hasOwnProperty.call(message, "type"))
+                        writer.uint32(/* id 1, wireType 2 =*/10).string(message.type);
+                    if (message.childType != null && Object.hasOwnProperty.call(message, "childType"))
+                        writer.uint32(/* id 2, wireType 2 =*/18).string(message.childType);
+                    return writer;
+                };
+    
+                /**
+                 * Encodes the specified ResourceReference message, length delimited. Does not implicitly {@link google.api.ResourceReference.verify|verify} messages.
+                 * @function encodeDelimited
+                 * @memberof google.api.ResourceReference
+                 * @static
+                 * @param {google.api.IResourceReference} message ResourceReference message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                ResourceReference.encodeDelimited = function encodeDelimited(message, writer) {
+                    return this.encode(message, writer).ldelim();
+                };
+    
+                /**
+                 * Decodes a ResourceReference message from the specified reader or buffer.
+                 * @function decode
+                 * @memberof google.api.ResourceReference
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @param {number} [length] Message length if known beforehand
+                 * @returns {google.api.ResourceReference} ResourceReference
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                ResourceReference.decode = function decode(reader, length) {
+                    if (!(reader instanceof $Reader))
+                        reader = $Reader.create(reader);
+                    var end = length === undefined ? reader.len : reader.pos + length, message = new $root.google.api.ResourceReference();
+                    while (reader.pos < end) {
+                        var tag = reader.uint32();
+                        switch (tag >>> 3) {
+                        case 1:
+                            message.type = reader.string();
+                            break;
+                        case 2:
+                            message.childType = reader.string();
+                            break;
+                        default:
+                            reader.skipType(tag & 7);
+                            break;
+                        }
+                    }
+                    return message;
+                };
+    
+                /**
+                 * Decodes a ResourceReference message from the specified reader or buffer, length delimited.
+                 * @function decodeDelimited
+                 * @memberof google.api.ResourceReference
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @returns {google.api.ResourceReference} ResourceReference
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                ResourceReference.decodeDelimited = function decodeDelimited(reader) {
+                    if (!(reader instanceof $Reader))
+                        reader = new $Reader(reader);
+                    return this.decode(reader, reader.uint32());
+                };
+    
+                /**
+                 * Verifies a ResourceReference message.
+                 * @function verify
+                 * @memberof google.api.ResourceReference
+                 * @static
+                 * @param {Object.<string,*>} message Plain object to verify
+                 * @returns {string|null} `null` if valid, otherwise the reason why it is not
+                 */
+                ResourceReference.verify = function verify(message) {
+                    if (typeof message !== "object" || message === null)
+                        return "object expected";
+                    if (message.type != null && message.hasOwnProperty("type"))
+                        if (!$util.isString(message.type))
+                            return "type: string expected";
+                    if (message.childType != null && message.hasOwnProperty("childType"))
+                        if (!$util.isString(message.childType))
+                            return "childType: string expected";
+                    return null;
+                };
+    
+                /**
+                 * Creates a ResourceReference message from a plain object. Also converts values to their respective internal types.
+                 * @function fromObject
+                 * @memberof google.api.ResourceReference
+                 * @static
+                 * @param {Object.<string,*>} object Plain object
+                 * @returns {google.api.ResourceReference} ResourceReference
+                 */
+                ResourceReference.fromObject = function fromObject(object) {
+                    if (object instanceof $root.google.api.ResourceReference)
+                        return object;
+                    var message = new $root.google.api.ResourceReference();
+                    if (object.type != null)
+                        message.type = String(object.type);
+                    if (object.childType != null)
+                        message.childType = String(object.childType);
+                    return message;
+                };
+    
+                /**
+                 * Creates a plain object from a ResourceReference message. Also converts values to other types if specified.
+                 * @function toObject
+                 * @memberof google.api.ResourceReference
+                 * @static
+                 * @param {google.api.ResourceReference} message ResourceReference
+                 * @param {$protobuf.IConversionOptions} [options] Conversion options
+                 * @returns {Object.<string,*>} Plain object
+                 */
+                ResourceReference.toObject = function toObject(message, options) {
+                    if (!options)
+                        options = {};
+                    var object = {};
+                    if (options.defaults) {
+                        object.type = "";
+                        object.childType = "";
+                    }
+                    if (message.type != null && message.hasOwnProperty("type"))
+                        object.type = message.type;
+                    if (message.childType != null && message.hasOwnProperty("childType"))
+                        object.childType = message.childType;
+                    return object;
+                };
+    
+                /**
+                 * Converts this ResourceReference to JSON.
+                 * @function toJSON
+                 * @memberof google.api.ResourceReference
+                 * @instance
+                 * @returns {Object.<string,*>} JSON object
+                 */
+                ResourceReference.prototype.toJSON = function toJSON() {
+                    return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+                };
+    
+                return ResourceReference;
             })();
     
             return api;
@@ -11743,9 +13151,9 @@
                 FileDescriptorProto.encode = function encode(message, writer) {
                     if (!writer)
                         writer = $Writer.create();
-                    if (message.name != null && message.hasOwnProperty("name"))
+                    if (message.name != null && Object.hasOwnProperty.call(message, "name"))
                         writer.uint32(/* id 1, wireType 2 =*/10).string(message.name);
-                    if (message["package"] != null && message.hasOwnProperty("package"))
+                    if (message["package"] != null && Object.hasOwnProperty.call(message, "package"))
                         writer.uint32(/* id 2, wireType 2 =*/18).string(message["package"]);
                     if (message.dependency != null && message.dependency.length)
                         for (var i = 0; i < message.dependency.length; ++i)
@@ -11762,9 +13170,9 @@
                     if (message.extension != null && message.extension.length)
                         for (var i = 0; i < message.extension.length; ++i)
                             $root.google.protobuf.FieldDescriptorProto.encode(message.extension[i], writer.uint32(/* id 7, wireType 2 =*/58).fork()).ldelim();
-                    if (message.options != null && message.hasOwnProperty("options"))
+                    if (message.options != null && Object.hasOwnProperty.call(message, "options"))
                         $root.google.protobuf.FileOptions.encode(message.options, writer.uint32(/* id 8, wireType 2 =*/66).fork()).ldelim();
-                    if (message.sourceCodeInfo != null && message.hasOwnProperty("sourceCodeInfo"))
+                    if (message.sourceCodeInfo != null && Object.hasOwnProperty.call(message, "sourceCodeInfo"))
                         $root.google.protobuf.SourceCodeInfo.encode(message.sourceCodeInfo, writer.uint32(/* id 9, wireType 2 =*/74).fork()).ldelim();
                     if (message.publicDependency != null && message.publicDependency.length)
                         for (var i = 0; i < message.publicDependency.length; ++i)
@@ -11772,7 +13180,7 @@
                     if (message.weakDependency != null && message.weakDependency.length)
                         for (var i = 0; i < message.weakDependency.length; ++i)
                             writer.uint32(/* id 11, wireType 0 =*/88).int32(message.weakDependency[i]);
-                    if (message.syntax != null && message.hasOwnProperty("syntax"))
+                    if (message.syntax != null && Object.hasOwnProperty.call(message, "syntax"))
                         writer.uint32(/* id 12, wireType 2 =*/98).string(message.syntax);
                     return writer;
                 };
@@ -12310,7 +13718,7 @@
                 DescriptorProto.encode = function encode(message, writer) {
                     if (!writer)
                         writer = $Writer.create();
-                    if (message.name != null && message.hasOwnProperty("name"))
+                    if (message.name != null && Object.hasOwnProperty.call(message, "name"))
                         writer.uint32(/* id 1, wireType 2 =*/10).string(message.name);
                     if (message.field != null && message.field.length)
                         for (var i = 0; i < message.field.length; ++i)
@@ -12327,7 +13735,7 @@
                     if (message.extension != null && message.extension.length)
                         for (var i = 0; i < message.extension.length; ++i)
                             $root.google.protobuf.FieldDescriptorProto.encode(message.extension[i], writer.uint32(/* id 6, wireType 2 =*/50).fork()).ldelim();
-                    if (message.options != null && message.hasOwnProperty("options"))
+                    if (message.options != null && Object.hasOwnProperty.call(message, "options"))
                         $root.google.protobuf.MessageOptions.encode(message.options, writer.uint32(/* id 7, wireType 2 =*/58).fork()).ldelim();
                     if (message.oneofDecl != null && message.oneofDecl.length)
                         for (var i = 0; i < message.oneofDecl.length; ++i)
@@ -12792,11 +14200,11 @@
                     ExtensionRange.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.start != null && message.hasOwnProperty("start"))
+                        if (message.start != null && Object.hasOwnProperty.call(message, "start"))
                             writer.uint32(/* id 1, wireType 0 =*/8).int32(message.start);
-                        if (message.end != null && message.hasOwnProperty("end"))
+                        if (message.end != null && Object.hasOwnProperty.call(message, "end"))
                             writer.uint32(/* id 2, wireType 0 =*/16).int32(message.end);
-                        if (message.options != null && message.hasOwnProperty("options"))
+                        if (message.options != null && Object.hasOwnProperty.call(message, "options"))
                             $root.google.protobuf.ExtensionRangeOptions.encode(message.options, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
                         return writer;
                     };
@@ -13020,9 +14428,9 @@
                     ReservedRange.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.start != null && message.hasOwnProperty("start"))
+                        if (message.start != null && Object.hasOwnProperty.call(message, "start"))
                             writer.uint32(/* id 1, wireType 0 =*/8).int32(message.start);
-                        if (message.end != null && message.hasOwnProperty("end"))
+                        if (message.end != null && Object.hasOwnProperty.call(message, "end"))
                             writer.uint32(/* id 2, wireType 0 =*/16).int32(message.end);
                         return writer;
                     };
@@ -13392,6 +14800,7 @@
                  * @property {number|null} [oneofIndex] FieldDescriptorProto oneofIndex
                  * @property {string|null} [jsonName] FieldDescriptorProto jsonName
                  * @property {google.protobuf.IFieldOptions|null} [options] FieldDescriptorProto options
+                 * @property {boolean|null} [proto3Optional] FieldDescriptorProto proto3Optional
                  */
     
                 /**
@@ -13490,6 +14899,14 @@
                 FieldDescriptorProto.prototype.options = null;
     
                 /**
+                 * FieldDescriptorProto proto3Optional.
+                 * @member {boolean} proto3Optional
+                 * @memberof google.protobuf.FieldDescriptorProto
+                 * @instance
+                 */
+                FieldDescriptorProto.prototype.proto3Optional = false;
+    
+                /**
                  * Creates a new FieldDescriptorProto instance using the specified properties.
                  * @function create
                  * @memberof google.protobuf.FieldDescriptorProto
@@ -13513,26 +14930,28 @@
                 FieldDescriptorProto.encode = function encode(message, writer) {
                     if (!writer)
                         writer = $Writer.create();
-                    if (message.name != null && message.hasOwnProperty("name"))
+                    if (message.name != null && Object.hasOwnProperty.call(message, "name"))
                         writer.uint32(/* id 1, wireType 2 =*/10).string(message.name);
-                    if (message.extendee != null && message.hasOwnProperty("extendee"))
+                    if (message.extendee != null && Object.hasOwnProperty.call(message, "extendee"))
                         writer.uint32(/* id 2, wireType 2 =*/18).string(message.extendee);
-                    if (message.number != null && message.hasOwnProperty("number"))
+                    if (message.number != null && Object.hasOwnProperty.call(message, "number"))
                         writer.uint32(/* id 3, wireType 0 =*/24).int32(message.number);
-                    if (message.label != null && message.hasOwnProperty("label"))
+                    if (message.label != null && Object.hasOwnProperty.call(message, "label"))
                         writer.uint32(/* id 4, wireType 0 =*/32).int32(message.label);
-                    if (message.type != null && message.hasOwnProperty("type"))
+                    if (message.type != null && Object.hasOwnProperty.call(message, "type"))
                         writer.uint32(/* id 5, wireType 0 =*/40).int32(message.type);
-                    if (message.typeName != null && message.hasOwnProperty("typeName"))
+                    if (message.typeName != null && Object.hasOwnProperty.call(message, "typeName"))
                         writer.uint32(/* id 6, wireType 2 =*/50).string(message.typeName);
-                    if (message.defaultValue != null && message.hasOwnProperty("defaultValue"))
+                    if (message.defaultValue != null && Object.hasOwnProperty.call(message, "defaultValue"))
                         writer.uint32(/* id 7, wireType 2 =*/58).string(message.defaultValue);
-                    if (message.options != null && message.hasOwnProperty("options"))
+                    if (message.options != null && Object.hasOwnProperty.call(message, "options"))
                         $root.google.protobuf.FieldOptions.encode(message.options, writer.uint32(/* id 8, wireType 2 =*/66).fork()).ldelim();
-                    if (message.oneofIndex != null && message.hasOwnProperty("oneofIndex"))
+                    if (message.oneofIndex != null && Object.hasOwnProperty.call(message, "oneofIndex"))
                         writer.uint32(/* id 9, wireType 0 =*/72).int32(message.oneofIndex);
-                    if (message.jsonName != null && message.hasOwnProperty("jsonName"))
+                    if (message.jsonName != null && Object.hasOwnProperty.call(message, "jsonName"))
                         writer.uint32(/* id 10, wireType 2 =*/82).string(message.jsonName);
+                    if (message.proto3Optional != null && Object.hasOwnProperty.call(message, "proto3Optional"))
+                        writer.uint32(/* id 17, wireType 0 =*/136).bool(message.proto3Optional);
                     return writer;
                 };
     
@@ -13596,6 +15015,9 @@
                             break;
                         case 8:
                             message.options = $root.google.protobuf.FieldOptions.decode(reader, reader.uint32());
+                            break;
+                        case 17:
+                            message.proto3Optional = reader.bool();
                             break;
                         default:
                             reader.skipType(tag & 7);
@@ -13691,6 +15113,9 @@
                         if (error)
                             return "options." + error;
                     }
+                    if (message.proto3Optional != null && message.hasOwnProperty("proto3Optional"))
+                        if (typeof message.proto3Optional !== "boolean")
+                            return "proto3Optional: boolean expected";
                     return null;
                 };
     
@@ -13813,6 +15238,8 @@
                             throw TypeError(".google.protobuf.FieldDescriptorProto.options: object expected");
                         message.options = $root.google.protobuf.FieldOptions.fromObject(object.options);
                     }
+                    if (object.proto3Optional != null)
+                        message.proto3Optional = Boolean(object.proto3Optional);
                     return message;
                 };
     
@@ -13840,6 +15267,7 @@
                         object.options = null;
                         object.oneofIndex = 0;
                         object.jsonName = "";
+                        object.proto3Optional = false;
                     }
                     if (message.name != null && message.hasOwnProperty("name"))
                         object.name = message.name;
@@ -13861,6 +15289,8 @@
                         object.oneofIndex = message.oneofIndex;
                     if (message.jsonName != null && message.hasOwnProperty("jsonName"))
                         object.jsonName = message.jsonName;
+                    if (message.proto3Optional != null && message.hasOwnProperty("proto3Optional"))
+                        object.proto3Optional = message.proto3Optional;
                     return object;
                 };
     
@@ -13878,7 +15308,7 @@
                 /**
                  * Type enum.
                  * @name google.protobuf.FieldDescriptorProto.Type
-                 * @enum {string}
+                 * @enum {number}
                  * @property {number} TYPE_DOUBLE=1 TYPE_DOUBLE value
                  * @property {number} TYPE_FLOAT=2 TYPE_FLOAT value
                  * @property {number} TYPE_INT64=3 TYPE_INT64 value
@@ -13924,7 +15354,7 @@
                 /**
                  * Label enum.
                  * @name google.protobuf.FieldDescriptorProto.Label
-                 * @enum {string}
+                 * @enum {number}
                  * @property {number} LABEL_OPTIONAL=1 LABEL_OPTIONAL value
                  * @property {number} LABEL_REQUIRED=2 LABEL_REQUIRED value
                  * @property {number} LABEL_REPEATED=3 LABEL_REPEATED value
@@ -14005,9 +15435,9 @@
                 OneofDescriptorProto.encode = function encode(message, writer) {
                     if (!writer)
                         writer = $Writer.create();
-                    if (message.name != null && message.hasOwnProperty("name"))
+                    if (message.name != null && Object.hasOwnProperty.call(message, "name"))
                         writer.uint32(/* id 1, wireType 2 =*/10).string(message.name);
-                    if (message.options != null && message.hasOwnProperty("options"))
+                    if (message.options != null && Object.hasOwnProperty.call(message, "options"))
                         $root.google.protobuf.OneofOptions.encode(message.options, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
                     return writer;
                 };
@@ -14250,12 +15680,12 @@
                 EnumDescriptorProto.encode = function encode(message, writer) {
                     if (!writer)
                         writer = $Writer.create();
-                    if (message.name != null && message.hasOwnProperty("name"))
+                    if (message.name != null && Object.hasOwnProperty.call(message, "name"))
                         writer.uint32(/* id 1, wireType 2 =*/10).string(message.name);
                     if (message.value != null && message.value.length)
                         for (var i = 0; i < message.value.length; ++i)
                             $root.google.protobuf.EnumValueDescriptorProto.encode(message.value[i], writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
-                    if (message.options != null && message.hasOwnProperty("options"))
+                    if (message.options != null && Object.hasOwnProperty.call(message, "options"))
                         $root.google.protobuf.EnumOptions.encode(message.options, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
                     if (message.reservedRange != null && message.reservedRange.length)
                         for (var i = 0; i < message.reservedRange.length; ++i)
@@ -14558,9 +15988,9 @@
                     EnumReservedRange.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.start != null && message.hasOwnProperty("start"))
+                        if (message.start != null && Object.hasOwnProperty.call(message, "start"))
                             writer.uint32(/* id 1, wireType 0 =*/8).int32(message.start);
-                        if (message.end != null && message.hasOwnProperty("end"))
+                        if (message.end != null && Object.hasOwnProperty.call(message, "end"))
                             writer.uint32(/* id 2, wireType 0 =*/16).int32(message.end);
                         return writer;
                     };
@@ -14780,11 +16210,11 @@
                 EnumValueDescriptorProto.encode = function encode(message, writer) {
                     if (!writer)
                         writer = $Writer.create();
-                    if (message.name != null && message.hasOwnProperty("name"))
+                    if (message.name != null && Object.hasOwnProperty.call(message, "name"))
                         writer.uint32(/* id 1, wireType 2 =*/10).string(message.name);
-                    if (message.number != null && message.hasOwnProperty("number"))
+                    if (message.number != null && Object.hasOwnProperty.call(message, "number"))
                         writer.uint32(/* id 2, wireType 0 =*/16).int32(message.number);
-                    if (message.options != null && message.hasOwnProperty("options"))
+                    if (message.options != null && Object.hasOwnProperty.call(message, "options"))
                         $root.google.protobuf.EnumValueOptions.encode(message.options, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
                     return writer;
                 };
@@ -15018,12 +16448,12 @@
                 ServiceDescriptorProto.encode = function encode(message, writer) {
                     if (!writer)
                         writer = $Writer.create();
-                    if (message.name != null && message.hasOwnProperty("name"))
+                    if (message.name != null && Object.hasOwnProperty.call(message, "name"))
                         writer.uint32(/* id 1, wireType 2 =*/10).string(message.name);
                     if (message.method != null && message.method.length)
                         for (var i = 0; i < message.method.length; ++i)
                             $root.google.protobuf.MethodDescriptorProto.encode(message.method[i], writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
-                    if (message.options != null && message.hasOwnProperty("options"))
+                    if (message.options != null && Object.hasOwnProperty.call(message, "options"))
                         $root.google.protobuf.ServiceOptions.encode(message.options, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
                     return writer;
                 };
@@ -15303,17 +16733,17 @@
                 MethodDescriptorProto.encode = function encode(message, writer) {
                     if (!writer)
                         writer = $Writer.create();
-                    if (message.name != null && message.hasOwnProperty("name"))
+                    if (message.name != null && Object.hasOwnProperty.call(message, "name"))
                         writer.uint32(/* id 1, wireType 2 =*/10).string(message.name);
-                    if (message.inputType != null && message.hasOwnProperty("inputType"))
+                    if (message.inputType != null && Object.hasOwnProperty.call(message, "inputType"))
                         writer.uint32(/* id 2, wireType 2 =*/18).string(message.inputType);
-                    if (message.outputType != null && message.hasOwnProperty("outputType"))
+                    if (message.outputType != null && Object.hasOwnProperty.call(message, "outputType"))
                         writer.uint32(/* id 3, wireType 2 =*/26).string(message.outputType);
-                    if (message.options != null && message.hasOwnProperty("options"))
+                    if (message.options != null && Object.hasOwnProperty.call(message, "options"))
                         $root.google.protobuf.MethodOptions.encode(message.options, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
-                    if (message.clientStreaming != null && message.hasOwnProperty("clientStreaming"))
+                    if (message.clientStreaming != null && Object.hasOwnProperty.call(message, "clientStreaming"))
                         writer.uint32(/* id 5, wireType 0 =*/40).bool(message.clientStreaming);
-                    if (message.serverStreaming != null && message.hasOwnProperty("serverStreaming"))
+                    if (message.serverStreaming != null && Object.hasOwnProperty.call(message, "serverStreaming"))
                         writer.uint32(/* id 6, wireType 0 =*/48).bool(message.serverStreaming);
                     return writer;
                 };
@@ -15532,6 +16962,7 @@
                  * @property {string|null} [phpMetadataNamespace] FileOptions phpMetadataNamespace
                  * @property {string|null} [rubyPackage] FileOptions rubyPackage
                  * @property {Array.<google.protobuf.IUninterpretedOption>|null} [uninterpretedOption] FileOptions uninterpretedOption
+                 * @property {Array.<google.api.IResourceDescriptor>|null} [".google.api.resourceDefinition"] FileOptions .google.api.resourceDefinition
                  */
     
                 /**
@@ -15544,6 +16975,7 @@
                  */
                 function FileOptions(properties) {
                     this.uninterpretedOption = [];
+                    this[".google.api.resourceDefinition"] = [];
                     if (properties)
                         for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                             if (properties[keys[i]] != null)
@@ -15652,7 +17084,7 @@
                  * @memberof google.protobuf.FileOptions
                  * @instance
                  */
-                FileOptions.prototype.ccEnableArenas = false;
+                FileOptions.prototype.ccEnableArenas = true;
     
                 /**
                  * FileOptions objcClassPrefix.
@@ -15719,6 +17151,14 @@
                 FileOptions.prototype.uninterpretedOption = $util.emptyArray;
     
                 /**
+                 * FileOptions .google.api.resourceDefinition.
+                 * @member {Array.<google.api.IResourceDescriptor>} .google.api.resourceDefinition
+                 * @memberof google.protobuf.FileOptions
+                 * @instance
+                 */
+                FileOptions.prototype[".google.api.resourceDefinition"] = $util.emptyArray;
+    
+                /**
                  * Creates a new FileOptions instance using the specified properties.
                  * @function create
                  * @memberof google.protobuf.FileOptions
@@ -15742,49 +17182,52 @@
                 FileOptions.encode = function encode(message, writer) {
                     if (!writer)
                         writer = $Writer.create();
-                    if (message.javaPackage != null && message.hasOwnProperty("javaPackage"))
+                    if (message.javaPackage != null && Object.hasOwnProperty.call(message, "javaPackage"))
                         writer.uint32(/* id 1, wireType 2 =*/10).string(message.javaPackage);
-                    if (message.javaOuterClassname != null && message.hasOwnProperty("javaOuterClassname"))
+                    if (message.javaOuterClassname != null && Object.hasOwnProperty.call(message, "javaOuterClassname"))
                         writer.uint32(/* id 8, wireType 2 =*/66).string(message.javaOuterClassname);
-                    if (message.optimizeFor != null && message.hasOwnProperty("optimizeFor"))
+                    if (message.optimizeFor != null && Object.hasOwnProperty.call(message, "optimizeFor"))
                         writer.uint32(/* id 9, wireType 0 =*/72).int32(message.optimizeFor);
-                    if (message.javaMultipleFiles != null && message.hasOwnProperty("javaMultipleFiles"))
+                    if (message.javaMultipleFiles != null && Object.hasOwnProperty.call(message, "javaMultipleFiles"))
                         writer.uint32(/* id 10, wireType 0 =*/80).bool(message.javaMultipleFiles);
-                    if (message.goPackage != null && message.hasOwnProperty("goPackage"))
+                    if (message.goPackage != null && Object.hasOwnProperty.call(message, "goPackage"))
                         writer.uint32(/* id 11, wireType 2 =*/90).string(message.goPackage);
-                    if (message.ccGenericServices != null && message.hasOwnProperty("ccGenericServices"))
+                    if (message.ccGenericServices != null && Object.hasOwnProperty.call(message, "ccGenericServices"))
                         writer.uint32(/* id 16, wireType 0 =*/128).bool(message.ccGenericServices);
-                    if (message.javaGenericServices != null && message.hasOwnProperty("javaGenericServices"))
+                    if (message.javaGenericServices != null && Object.hasOwnProperty.call(message, "javaGenericServices"))
                         writer.uint32(/* id 17, wireType 0 =*/136).bool(message.javaGenericServices);
-                    if (message.pyGenericServices != null && message.hasOwnProperty("pyGenericServices"))
+                    if (message.pyGenericServices != null && Object.hasOwnProperty.call(message, "pyGenericServices"))
                         writer.uint32(/* id 18, wireType 0 =*/144).bool(message.pyGenericServices);
-                    if (message.javaGenerateEqualsAndHash != null && message.hasOwnProperty("javaGenerateEqualsAndHash"))
+                    if (message.javaGenerateEqualsAndHash != null && Object.hasOwnProperty.call(message, "javaGenerateEqualsAndHash"))
                         writer.uint32(/* id 20, wireType 0 =*/160).bool(message.javaGenerateEqualsAndHash);
-                    if (message.deprecated != null && message.hasOwnProperty("deprecated"))
+                    if (message.deprecated != null && Object.hasOwnProperty.call(message, "deprecated"))
                         writer.uint32(/* id 23, wireType 0 =*/184).bool(message.deprecated);
-                    if (message.javaStringCheckUtf8 != null && message.hasOwnProperty("javaStringCheckUtf8"))
+                    if (message.javaStringCheckUtf8 != null && Object.hasOwnProperty.call(message, "javaStringCheckUtf8"))
                         writer.uint32(/* id 27, wireType 0 =*/216).bool(message.javaStringCheckUtf8);
-                    if (message.ccEnableArenas != null && message.hasOwnProperty("ccEnableArenas"))
+                    if (message.ccEnableArenas != null && Object.hasOwnProperty.call(message, "ccEnableArenas"))
                         writer.uint32(/* id 31, wireType 0 =*/248).bool(message.ccEnableArenas);
-                    if (message.objcClassPrefix != null && message.hasOwnProperty("objcClassPrefix"))
+                    if (message.objcClassPrefix != null && Object.hasOwnProperty.call(message, "objcClassPrefix"))
                         writer.uint32(/* id 36, wireType 2 =*/290).string(message.objcClassPrefix);
-                    if (message.csharpNamespace != null && message.hasOwnProperty("csharpNamespace"))
+                    if (message.csharpNamespace != null && Object.hasOwnProperty.call(message, "csharpNamespace"))
                         writer.uint32(/* id 37, wireType 2 =*/298).string(message.csharpNamespace);
-                    if (message.swiftPrefix != null && message.hasOwnProperty("swiftPrefix"))
+                    if (message.swiftPrefix != null && Object.hasOwnProperty.call(message, "swiftPrefix"))
                         writer.uint32(/* id 39, wireType 2 =*/314).string(message.swiftPrefix);
-                    if (message.phpClassPrefix != null && message.hasOwnProperty("phpClassPrefix"))
+                    if (message.phpClassPrefix != null && Object.hasOwnProperty.call(message, "phpClassPrefix"))
                         writer.uint32(/* id 40, wireType 2 =*/322).string(message.phpClassPrefix);
-                    if (message.phpNamespace != null && message.hasOwnProperty("phpNamespace"))
+                    if (message.phpNamespace != null && Object.hasOwnProperty.call(message, "phpNamespace"))
                         writer.uint32(/* id 41, wireType 2 =*/330).string(message.phpNamespace);
-                    if (message.phpGenericServices != null && message.hasOwnProperty("phpGenericServices"))
+                    if (message.phpGenericServices != null && Object.hasOwnProperty.call(message, "phpGenericServices"))
                         writer.uint32(/* id 42, wireType 0 =*/336).bool(message.phpGenericServices);
-                    if (message.phpMetadataNamespace != null && message.hasOwnProperty("phpMetadataNamespace"))
+                    if (message.phpMetadataNamespace != null && Object.hasOwnProperty.call(message, "phpMetadataNamespace"))
                         writer.uint32(/* id 44, wireType 2 =*/354).string(message.phpMetadataNamespace);
-                    if (message.rubyPackage != null && message.hasOwnProperty("rubyPackage"))
+                    if (message.rubyPackage != null && Object.hasOwnProperty.call(message, "rubyPackage"))
                         writer.uint32(/* id 45, wireType 2 =*/362).string(message.rubyPackage);
                     if (message.uninterpretedOption != null && message.uninterpretedOption.length)
                         for (var i = 0; i < message.uninterpretedOption.length; ++i)
                             $root.google.protobuf.UninterpretedOption.encode(message.uninterpretedOption[i], writer.uint32(/* id 999, wireType 2 =*/7994).fork()).ldelim();
+                    if (message[".google.api.resourceDefinition"] != null && message[".google.api.resourceDefinition"].length)
+                        for (var i = 0; i < message[".google.api.resourceDefinition"].length; ++i)
+                            $root.google.api.ResourceDescriptor.encode(message[".google.api.resourceDefinition"][i], writer.uint32(/* id 1053, wireType 2 =*/8426).fork()).ldelim();
                     return writer;
                 };
     
@@ -15883,6 +17326,11 @@
                             if (!(message.uninterpretedOption && message.uninterpretedOption.length))
                                 message.uninterpretedOption = [];
                             message.uninterpretedOption.push($root.google.protobuf.UninterpretedOption.decode(reader, reader.uint32()));
+                            break;
+                        case 1053:
+                            if (!(message[".google.api.resourceDefinition"] && message[".google.api.resourceDefinition"].length))
+                                message[".google.api.resourceDefinition"] = [];
+                            message[".google.api.resourceDefinition"].push($root.google.api.ResourceDescriptor.decode(reader, reader.uint32()));
                             break;
                         default:
                             reader.skipType(tag & 7);
@@ -15994,6 +17442,15 @@
                                 return "uninterpretedOption." + error;
                         }
                     }
+                    if (message[".google.api.resourceDefinition"] != null && message.hasOwnProperty(".google.api.resourceDefinition")) {
+                        if (!Array.isArray(message[".google.api.resourceDefinition"]))
+                            return ".google.api.resourceDefinition: array expected";
+                        for (var i = 0; i < message[".google.api.resourceDefinition"].length; ++i) {
+                            var error = $root.google.api.ResourceDescriptor.verify(message[".google.api.resourceDefinition"][i]);
+                            if (error)
+                                return ".google.api.resourceDefinition." + error;
+                        }
+                    }
                     return null;
                 };
     
@@ -16071,6 +17528,16 @@
                             message.uninterpretedOption[i] = $root.google.protobuf.UninterpretedOption.fromObject(object.uninterpretedOption[i]);
                         }
                     }
+                    if (object[".google.api.resourceDefinition"]) {
+                        if (!Array.isArray(object[".google.api.resourceDefinition"]))
+                            throw TypeError(".google.protobuf.FileOptions..google.api.resourceDefinition: array expected");
+                        message[".google.api.resourceDefinition"] = [];
+                        for (var i = 0; i < object[".google.api.resourceDefinition"].length; ++i) {
+                            if (typeof object[".google.api.resourceDefinition"][i] !== "object")
+                                throw TypeError(".google.protobuf.FileOptions..google.api.resourceDefinition: object expected");
+                            message[".google.api.resourceDefinition"][i] = $root.google.api.ResourceDescriptor.fromObject(object[".google.api.resourceDefinition"][i]);
+                        }
+                    }
                     return message;
                 };
     
@@ -16087,8 +17554,10 @@
                     if (!options)
                         options = {};
                     var object = {};
-                    if (options.arrays || options.defaults)
+                    if (options.arrays || options.defaults) {
                         object.uninterpretedOption = [];
+                        object[".google.api.resourceDefinition"] = [];
+                    }
                     if (options.defaults) {
                         object.javaPackage = "";
                         object.javaOuterClassname = "";
@@ -16101,7 +17570,7 @@
                         object.javaGenerateEqualsAndHash = false;
                         object.deprecated = false;
                         object.javaStringCheckUtf8 = false;
-                        object.ccEnableArenas = false;
+                        object.ccEnableArenas = true;
                         object.objcClassPrefix = "";
                         object.csharpNamespace = "";
                         object.swiftPrefix = "";
@@ -16156,6 +17625,11 @@
                         for (var j = 0; j < message.uninterpretedOption.length; ++j)
                             object.uninterpretedOption[j] = $root.google.protobuf.UninterpretedOption.toObject(message.uninterpretedOption[j], options);
                     }
+                    if (message[".google.api.resourceDefinition"] && message[".google.api.resourceDefinition"].length) {
+                        object[".google.api.resourceDefinition"] = [];
+                        for (var j = 0; j < message[".google.api.resourceDefinition"].length; ++j)
+                            object[".google.api.resourceDefinition"][j] = $root.google.api.ResourceDescriptor.toObject(message[".google.api.resourceDefinition"][j], options);
+                    }
                     return object;
                 };
     
@@ -16173,7 +17647,7 @@
                 /**
                  * OptimizeMode enum.
                  * @name google.protobuf.FileOptions.OptimizeMode
-                 * @enum {string}
+                 * @enum {number}
                  * @property {number} SPEED=1 SPEED value
                  * @property {number} CODE_SIZE=2 CODE_SIZE value
                  * @property {number} LITE_RUNTIME=3 LITE_RUNTIME value
@@ -16200,6 +17674,7 @@
                  * @property {boolean|null} [deprecated] MessageOptions deprecated
                  * @property {boolean|null} [mapEntry] MessageOptions mapEntry
                  * @property {Array.<google.protobuf.IUninterpretedOption>|null} [uninterpretedOption] MessageOptions uninterpretedOption
+                 * @property {google.api.IResourceDescriptor|null} [".google.api.resource"] MessageOptions .google.api.resource
                  */
     
                 /**
@@ -16259,6 +17734,14 @@
                 MessageOptions.prototype.uninterpretedOption = $util.emptyArray;
     
                 /**
+                 * MessageOptions .google.api.resource.
+                 * @member {google.api.IResourceDescriptor|null|undefined} .google.api.resource
+                 * @memberof google.protobuf.MessageOptions
+                 * @instance
+                 */
+                MessageOptions.prototype[".google.api.resource"] = null;
+    
+                /**
                  * Creates a new MessageOptions instance using the specified properties.
                  * @function create
                  * @memberof google.protobuf.MessageOptions
@@ -16282,17 +17765,19 @@
                 MessageOptions.encode = function encode(message, writer) {
                     if (!writer)
                         writer = $Writer.create();
-                    if (message.messageSetWireFormat != null && message.hasOwnProperty("messageSetWireFormat"))
+                    if (message.messageSetWireFormat != null && Object.hasOwnProperty.call(message, "messageSetWireFormat"))
                         writer.uint32(/* id 1, wireType 0 =*/8).bool(message.messageSetWireFormat);
-                    if (message.noStandardDescriptorAccessor != null && message.hasOwnProperty("noStandardDescriptorAccessor"))
+                    if (message.noStandardDescriptorAccessor != null && Object.hasOwnProperty.call(message, "noStandardDescriptorAccessor"))
                         writer.uint32(/* id 2, wireType 0 =*/16).bool(message.noStandardDescriptorAccessor);
-                    if (message.deprecated != null && message.hasOwnProperty("deprecated"))
+                    if (message.deprecated != null && Object.hasOwnProperty.call(message, "deprecated"))
                         writer.uint32(/* id 3, wireType 0 =*/24).bool(message.deprecated);
-                    if (message.mapEntry != null && message.hasOwnProperty("mapEntry"))
+                    if (message.mapEntry != null && Object.hasOwnProperty.call(message, "mapEntry"))
                         writer.uint32(/* id 7, wireType 0 =*/56).bool(message.mapEntry);
                     if (message.uninterpretedOption != null && message.uninterpretedOption.length)
                         for (var i = 0; i < message.uninterpretedOption.length; ++i)
                             $root.google.protobuf.UninterpretedOption.encode(message.uninterpretedOption[i], writer.uint32(/* id 999, wireType 2 =*/7994).fork()).ldelim();
+                    if (message[".google.api.resource"] != null && Object.hasOwnProperty.call(message, ".google.api.resource"))
+                        $root.google.api.ResourceDescriptor.encode(message[".google.api.resource"], writer.uint32(/* id 1053, wireType 2 =*/8426).fork()).ldelim();
                     return writer;
                 };
     
@@ -16343,6 +17828,9 @@
                             if (!(message.uninterpretedOption && message.uninterpretedOption.length))
                                 message.uninterpretedOption = [];
                             message.uninterpretedOption.push($root.google.protobuf.UninterpretedOption.decode(reader, reader.uint32()));
+                            break;
+                        case 1053:
+                            message[".google.api.resource"] = $root.google.api.ResourceDescriptor.decode(reader, reader.uint32());
                             break;
                         default:
                             reader.skipType(tag & 7);
@@ -16400,6 +17888,11 @@
                                 return "uninterpretedOption." + error;
                         }
                     }
+                    if (message[".google.api.resource"] != null && message.hasOwnProperty(".google.api.resource")) {
+                        var error = $root.google.api.ResourceDescriptor.verify(message[".google.api.resource"]);
+                        if (error)
+                            return ".google.api.resource." + error;
+                    }
                     return null;
                 };
     
@@ -16433,6 +17926,11 @@
                             message.uninterpretedOption[i] = $root.google.protobuf.UninterpretedOption.fromObject(object.uninterpretedOption[i]);
                         }
                     }
+                    if (object[".google.api.resource"] != null) {
+                        if (typeof object[".google.api.resource"] !== "object")
+                            throw TypeError(".google.protobuf.MessageOptions..google.api.resource: object expected");
+                        message[".google.api.resource"] = $root.google.api.ResourceDescriptor.fromObject(object[".google.api.resource"]);
+                    }
                     return message;
                 };
     
@@ -16456,6 +17954,7 @@
                         object.noStandardDescriptorAccessor = false;
                         object.deprecated = false;
                         object.mapEntry = false;
+                        object[".google.api.resource"] = null;
                     }
                     if (message.messageSetWireFormat != null && message.hasOwnProperty("messageSetWireFormat"))
                         object.messageSetWireFormat = message.messageSetWireFormat;
@@ -16470,6 +17969,8 @@
                         for (var j = 0; j < message.uninterpretedOption.length; ++j)
                             object.uninterpretedOption[j] = $root.google.protobuf.UninterpretedOption.toObject(message.uninterpretedOption[j], options);
                     }
+                    if (message[".google.api.resource"] != null && message.hasOwnProperty(".google.api.resource"))
+                        object[".google.api.resource"] = $root.google.api.ResourceDescriptor.toObject(message[".google.api.resource"], options);
                     return object;
                 };
     
@@ -16500,6 +18001,8 @@
                  * @property {boolean|null} [deprecated] FieldOptions deprecated
                  * @property {boolean|null} [weak] FieldOptions weak
                  * @property {Array.<google.protobuf.IUninterpretedOption>|null} [uninterpretedOption] FieldOptions uninterpretedOption
+                 * @property {Array.<google.api.FieldBehavior>|null} [".google.api.fieldBehavior"] FieldOptions .google.api.fieldBehavior
+                 * @property {google.api.IResourceReference|null} [".google.api.resourceReference"] FieldOptions .google.api.resourceReference
                  */
     
                 /**
@@ -16512,6 +18015,7 @@
                  */
                 function FieldOptions(properties) {
                     this.uninterpretedOption = [];
+                    this[".google.api.fieldBehavior"] = [];
                     if (properties)
                         for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                             if (properties[keys[i]] != null)
@@ -16575,6 +18079,22 @@
                 FieldOptions.prototype.uninterpretedOption = $util.emptyArray;
     
                 /**
+                 * FieldOptions .google.api.fieldBehavior.
+                 * @member {Array.<google.api.FieldBehavior>} .google.api.fieldBehavior
+                 * @memberof google.protobuf.FieldOptions
+                 * @instance
+                 */
+                FieldOptions.prototype[".google.api.fieldBehavior"] = $util.emptyArray;
+    
+                /**
+                 * FieldOptions .google.api.resourceReference.
+                 * @member {google.api.IResourceReference|null|undefined} .google.api.resourceReference
+                 * @memberof google.protobuf.FieldOptions
+                 * @instance
+                 */
+                FieldOptions.prototype[".google.api.resourceReference"] = null;
+    
+                /**
                  * Creates a new FieldOptions instance using the specified properties.
                  * @function create
                  * @memberof google.protobuf.FieldOptions
@@ -16598,21 +18118,29 @@
                 FieldOptions.encode = function encode(message, writer) {
                     if (!writer)
                         writer = $Writer.create();
-                    if (message.ctype != null && message.hasOwnProperty("ctype"))
+                    if (message.ctype != null && Object.hasOwnProperty.call(message, "ctype"))
                         writer.uint32(/* id 1, wireType 0 =*/8).int32(message.ctype);
-                    if (message.packed != null && message.hasOwnProperty("packed"))
+                    if (message.packed != null && Object.hasOwnProperty.call(message, "packed"))
                         writer.uint32(/* id 2, wireType 0 =*/16).bool(message.packed);
-                    if (message.deprecated != null && message.hasOwnProperty("deprecated"))
+                    if (message.deprecated != null && Object.hasOwnProperty.call(message, "deprecated"))
                         writer.uint32(/* id 3, wireType 0 =*/24).bool(message.deprecated);
-                    if (message.lazy != null && message.hasOwnProperty("lazy"))
+                    if (message.lazy != null && Object.hasOwnProperty.call(message, "lazy"))
                         writer.uint32(/* id 5, wireType 0 =*/40).bool(message.lazy);
-                    if (message.jstype != null && message.hasOwnProperty("jstype"))
+                    if (message.jstype != null && Object.hasOwnProperty.call(message, "jstype"))
                         writer.uint32(/* id 6, wireType 0 =*/48).int32(message.jstype);
-                    if (message.weak != null && message.hasOwnProperty("weak"))
+                    if (message.weak != null && Object.hasOwnProperty.call(message, "weak"))
                         writer.uint32(/* id 10, wireType 0 =*/80).bool(message.weak);
                     if (message.uninterpretedOption != null && message.uninterpretedOption.length)
                         for (var i = 0; i < message.uninterpretedOption.length; ++i)
                             $root.google.protobuf.UninterpretedOption.encode(message.uninterpretedOption[i], writer.uint32(/* id 999, wireType 2 =*/7994).fork()).ldelim();
+                    if (message[".google.api.fieldBehavior"] != null && message[".google.api.fieldBehavior"].length) {
+                        writer.uint32(/* id 1052, wireType 2 =*/8418).fork();
+                        for (var i = 0; i < message[".google.api.fieldBehavior"].length; ++i)
+                            writer.int32(message[".google.api.fieldBehavior"][i]);
+                        writer.ldelim();
+                    }
+                    if (message[".google.api.resourceReference"] != null && Object.hasOwnProperty.call(message, ".google.api.resourceReference"))
+                        $root.google.api.ResourceReference.encode(message[".google.api.resourceReference"], writer.uint32(/* id 1055, wireType 2 =*/8442).fork()).ldelim();
                     return writer;
                 };
     
@@ -16669,6 +18197,19 @@
                             if (!(message.uninterpretedOption && message.uninterpretedOption.length))
                                 message.uninterpretedOption = [];
                             message.uninterpretedOption.push($root.google.protobuf.UninterpretedOption.decode(reader, reader.uint32()));
+                            break;
+                        case 1052:
+                            if (!(message[".google.api.fieldBehavior"] && message[".google.api.fieldBehavior"].length))
+                                message[".google.api.fieldBehavior"] = [];
+                            if ((tag & 7) === 2) {
+                                var end2 = reader.uint32() + reader.pos;
+                                while (reader.pos < end2)
+                                    message[".google.api.fieldBehavior"].push(reader.int32());
+                            } else
+                                message[".google.api.fieldBehavior"].push(reader.int32());
+                            break;
+                        case 1055:
+                            message[".google.api.resourceReference"] = $root.google.api.ResourceReference.decode(reader, reader.uint32());
                             break;
                         default:
                             reader.skipType(tag & 7);
@@ -16744,6 +18285,27 @@
                                 return "uninterpretedOption." + error;
                         }
                     }
+                    if (message[".google.api.fieldBehavior"] != null && message.hasOwnProperty(".google.api.fieldBehavior")) {
+                        if (!Array.isArray(message[".google.api.fieldBehavior"]))
+                            return ".google.api.fieldBehavior: array expected";
+                        for (var i = 0; i < message[".google.api.fieldBehavior"].length; ++i)
+                            switch (message[".google.api.fieldBehavior"][i]) {
+                            default:
+                                return ".google.api.fieldBehavior: enum value[] expected";
+                            case 0:
+                            case 1:
+                            case 2:
+                            case 3:
+                            case 4:
+                            case 5:
+                                break;
+                            }
+                    }
+                    if (message[".google.api.resourceReference"] != null && message.hasOwnProperty(".google.api.resourceReference")) {
+                        var error = $root.google.api.ResourceReference.verify(message[".google.api.resourceReference"]);
+                        if (error)
+                            return ".google.api.resourceReference." + error;
+                    }
                     return null;
                 };
     
@@ -16805,6 +18367,44 @@
                             message.uninterpretedOption[i] = $root.google.protobuf.UninterpretedOption.fromObject(object.uninterpretedOption[i]);
                         }
                     }
+                    if (object[".google.api.fieldBehavior"]) {
+                        if (!Array.isArray(object[".google.api.fieldBehavior"]))
+                            throw TypeError(".google.protobuf.FieldOptions..google.api.fieldBehavior: array expected");
+                        message[".google.api.fieldBehavior"] = [];
+                        for (var i = 0; i < object[".google.api.fieldBehavior"].length; ++i)
+                            switch (object[".google.api.fieldBehavior"][i]) {
+                            default:
+                            case "FIELD_BEHAVIOR_UNSPECIFIED":
+                            case 0:
+                                message[".google.api.fieldBehavior"][i] = 0;
+                                break;
+                            case "OPTIONAL":
+                            case 1:
+                                message[".google.api.fieldBehavior"][i] = 1;
+                                break;
+                            case "REQUIRED":
+                            case 2:
+                                message[".google.api.fieldBehavior"][i] = 2;
+                                break;
+                            case "OUTPUT_ONLY":
+                            case 3:
+                                message[".google.api.fieldBehavior"][i] = 3;
+                                break;
+                            case "INPUT_ONLY":
+                            case 4:
+                                message[".google.api.fieldBehavior"][i] = 4;
+                                break;
+                            case "IMMUTABLE":
+                            case 5:
+                                message[".google.api.fieldBehavior"][i] = 5;
+                                break;
+                            }
+                    }
+                    if (object[".google.api.resourceReference"] != null) {
+                        if (typeof object[".google.api.resourceReference"] !== "object")
+                            throw TypeError(".google.protobuf.FieldOptions..google.api.resourceReference: object expected");
+                        message[".google.api.resourceReference"] = $root.google.api.ResourceReference.fromObject(object[".google.api.resourceReference"]);
+                    }
                     return message;
                 };
     
@@ -16821,8 +18421,10 @@
                     if (!options)
                         options = {};
                     var object = {};
-                    if (options.arrays || options.defaults)
+                    if (options.arrays || options.defaults) {
                         object.uninterpretedOption = [];
+                        object[".google.api.fieldBehavior"] = [];
+                    }
                     if (options.defaults) {
                         object.ctype = options.enums === String ? "STRING" : 0;
                         object.packed = false;
@@ -16830,6 +18432,7 @@
                         object.lazy = false;
                         object.jstype = options.enums === String ? "JS_NORMAL" : 0;
                         object.weak = false;
+                        object[".google.api.resourceReference"] = null;
                     }
                     if (message.ctype != null && message.hasOwnProperty("ctype"))
                         object.ctype = options.enums === String ? $root.google.protobuf.FieldOptions.CType[message.ctype] : message.ctype;
@@ -16848,6 +18451,13 @@
                         for (var j = 0; j < message.uninterpretedOption.length; ++j)
                             object.uninterpretedOption[j] = $root.google.protobuf.UninterpretedOption.toObject(message.uninterpretedOption[j], options);
                     }
+                    if (message[".google.api.fieldBehavior"] && message[".google.api.fieldBehavior"].length) {
+                        object[".google.api.fieldBehavior"] = [];
+                        for (var j = 0; j < message[".google.api.fieldBehavior"].length; ++j)
+                            object[".google.api.fieldBehavior"][j] = options.enums === String ? $root.google.api.FieldBehavior[message[".google.api.fieldBehavior"][j]] : message[".google.api.fieldBehavior"][j];
+                    }
+                    if (message[".google.api.resourceReference"] != null && message.hasOwnProperty(".google.api.resourceReference"))
+                        object[".google.api.resourceReference"] = $root.google.api.ResourceReference.toObject(message[".google.api.resourceReference"], options);
                     return object;
                 };
     
@@ -16865,7 +18475,7 @@
                 /**
                  * CType enum.
                  * @name google.protobuf.FieldOptions.CType
-                 * @enum {string}
+                 * @enum {number}
                  * @property {number} STRING=0 STRING value
                  * @property {number} CORD=1 CORD value
                  * @property {number} STRING_PIECE=2 STRING_PIECE value
@@ -16881,7 +18491,7 @@
                 /**
                  * JSType enum.
                  * @name google.protobuf.FieldOptions.JSType
-                 * @enum {string}
+                 * @enum {number}
                  * @property {number} JS_NORMAL=0 JS_NORMAL value
                  * @property {number} JS_STRING=1 JS_STRING value
                  * @property {number} JS_NUMBER=2 JS_NUMBER value
@@ -17180,9 +18790,9 @@
                 EnumOptions.encode = function encode(message, writer) {
                     if (!writer)
                         writer = $Writer.create();
-                    if (message.allowAlias != null && message.hasOwnProperty("allowAlias"))
+                    if (message.allowAlias != null && Object.hasOwnProperty.call(message, "allowAlias"))
                         writer.uint32(/* id 2, wireType 0 =*/16).bool(message.allowAlias);
-                    if (message.deprecated != null && message.hasOwnProperty("deprecated"))
+                    if (message.deprecated != null && Object.hasOwnProperty.call(message, "deprecated"))
                         writer.uint32(/* id 3, wireType 0 =*/24).bool(message.deprecated);
                     if (message.uninterpretedOption != null && message.uninterpretedOption.length)
                         for (var i = 0; i < message.uninterpretedOption.length; ++i)
@@ -17425,7 +19035,7 @@
                 EnumValueOptions.encode = function encode(message, writer) {
                     if (!writer)
                         writer = $Writer.create();
-                    if (message.deprecated != null && message.hasOwnProperty("deprecated"))
+                    if (message.deprecated != null && Object.hasOwnProperty.call(message, "deprecated"))
                         writer.uint32(/* id 1, wireType 0 =*/8).bool(message.deprecated);
                     if (message.uninterpretedOption != null && message.uninterpretedOption.length)
                         for (var i = 0; i < message.uninterpretedOption.length; ++i)
@@ -17674,14 +19284,14 @@
                 ServiceOptions.encode = function encode(message, writer) {
                     if (!writer)
                         writer = $Writer.create();
-                    if (message.deprecated != null && message.hasOwnProperty("deprecated"))
+                    if (message.deprecated != null && Object.hasOwnProperty.call(message, "deprecated"))
                         writer.uint32(/* id 33, wireType 0 =*/264).bool(message.deprecated);
                     if (message.uninterpretedOption != null && message.uninterpretedOption.length)
                         for (var i = 0; i < message.uninterpretedOption.length; ++i)
                             $root.google.protobuf.UninterpretedOption.encode(message.uninterpretedOption[i], writer.uint32(/* id 999, wireType 2 =*/7994).fork()).ldelim();
-                    if (message[".google.api.defaultHost"] != null && message.hasOwnProperty(".google.api.defaultHost"))
+                    if (message[".google.api.defaultHost"] != null && Object.hasOwnProperty.call(message, ".google.api.defaultHost"))
                         writer.uint32(/* id 1049, wireType 2 =*/8394).string(message[".google.api.defaultHost"]);
-                    if (message[".google.api.oauthScopes"] != null && message.hasOwnProperty(".google.api.oauthScopes"))
+                    if (message[".google.api.oauthScopes"] != null && Object.hasOwnProperty.call(message, ".google.api.oauthScopes"))
                         writer.uint32(/* id 1050, wireType 2 =*/8402).string(message[".google.api.oauthScopes"]);
                     return writer;
                 };
@@ -17960,9 +19570,9 @@
                 MethodOptions.encode = function encode(message, writer) {
                     if (!writer)
                         writer = $Writer.create();
-                    if (message.deprecated != null && message.hasOwnProperty("deprecated"))
+                    if (message.deprecated != null && Object.hasOwnProperty.call(message, "deprecated"))
                         writer.uint32(/* id 33, wireType 0 =*/264).bool(message.deprecated);
-                    if (message.idempotencyLevel != null && message.hasOwnProperty("idempotencyLevel"))
+                    if (message.idempotencyLevel != null && Object.hasOwnProperty.call(message, "idempotencyLevel"))
                         writer.uint32(/* id 34, wireType 0 =*/272).int32(message.idempotencyLevel);
                     if (message.uninterpretedOption != null && message.uninterpretedOption.length)
                         for (var i = 0; i < message.uninterpretedOption.length; ++i)
@@ -17970,7 +19580,7 @@
                     if (message[".google.api.methodSignature"] != null && message[".google.api.methodSignature"].length)
                         for (var i = 0; i < message[".google.api.methodSignature"].length; ++i)
                             writer.uint32(/* id 1051, wireType 2 =*/8410).string(message[".google.api.methodSignature"][i]);
-                    if (message[".google.api.http"] != null && message.hasOwnProperty(".google.api.http"))
+                    if (message[".google.api.http"] != null && Object.hasOwnProperty.call(message, ".google.api.http"))
                         $root.google.api.HttpRule.encode(message[".google.api.http"], writer.uint32(/* id 72295728, wireType 2 =*/578365826).fork()).ldelim();
                     return writer;
                 };
@@ -18204,7 +19814,7 @@
                 /**
                  * IdempotencyLevel enum.
                  * @name google.protobuf.MethodOptions.IdempotencyLevel
-                 * @enum {string}
+                 * @enum {number}
                  * @property {number} IDEMPOTENCY_UNKNOWN=0 IDEMPOTENCY_UNKNOWN value
                  * @property {number} NO_SIDE_EFFECTS=1 NO_SIDE_EFFECTS value
                  * @property {number} IDEMPOTENT=2 IDEMPOTENT value
@@ -18334,17 +19944,17 @@
                     if (message.name != null && message.name.length)
                         for (var i = 0; i < message.name.length; ++i)
                             $root.google.protobuf.UninterpretedOption.NamePart.encode(message.name[i], writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
-                    if (message.identifierValue != null && message.hasOwnProperty("identifierValue"))
+                    if (message.identifierValue != null && Object.hasOwnProperty.call(message, "identifierValue"))
                         writer.uint32(/* id 3, wireType 2 =*/26).string(message.identifierValue);
-                    if (message.positiveIntValue != null && message.hasOwnProperty("positiveIntValue"))
+                    if (message.positiveIntValue != null && Object.hasOwnProperty.call(message, "positiveIntValue"))
                         writer.uint32(/* id 4, wireType 0 =*/32).uint64(message.positiveIntValue);
-                    if (message.negativeIntValue != null && message.hasOwnProperty("negativeIntValue"))
+                    if (message.negativeIntValue != null && Object.hasOwnProperty.call(message, "negativeIntValue"))
                         writer.uint32(/* id 5, wireType 0 =*/40).int64(message.negativeIntValue);
-                    if (message.doubleValue != null && message.hasOwnProperty("doubleValue"))
+                    if (message.doubleValue != null && Object.hasOwnProperty.call(message, "doubleValue"))
                         writer.uint32(/* id 6, wireType 1 =*/49).double(message.doubleValue);
-                    if (message.stringValue != null && message.hasOwnProperty("stringValue"))
+                    if (message.stringValue != null && Object.hasOwnProperty.call(message, "stringValue"))
                         writer.uint32(/* id 7, wireType 2 =*/58).bytes(message.stringValue);
-                    if (message.aggregateValue != null && message.hasOwnProperty("aggregateValue"))
+                    if (message.aggregateValue != null && Object.hasOwnProperty.call(message, "aggregateValue"))
                         writer.uint32(/* id 8, wireType 2 =*/66).string(message.aggregateValue);
                     return writer;
                 };
@@ -19121,9 +20731,9 @@
                                 writer.int32(message.span[i]);
                             writer.ldelim();
                         }
-                        if (message.leadingComments != null && message.hasOwnProperty("leadingComments"))
+                        if (message.leadingComments != null && Object.hasOwnProperty.call(message, "leadingComments"))
                             writer.uint32(/* id 3, wireType 2 =*/26).string(message.leadingComments);
-                        if (message.trailingComments != null && message.hasOwnProperty("trailingComments"))
+                        if (message.trailingComments != null && Object.hasOwnProperty.call(message, "trailingComments"))
                             writer.uint32(/* id 4, wireType 2 =*/34).string(message.trailingComments);
                         if (message.leadingDetachedComments != null && message.leadingDetachedComments.length)
                             for (var i = 0; i < message.leadingDetachedComments.length; ++i)
@@ -19654,11 +21264,11 @@
                                 writer.int32(message.path[i]);
                             writer.ldelim();
                         }
-                        if (message.sourceFile != null && message.hasOwnProperty("sourceFile"))
+                        if (message.sourceFile != null && Object.hasOwnProperty.call(message, "sourceFile"))
                             writer.uint32(/* id 2, wireType 2 =*/18).string(message.sourceFile);
-                        if (message.begin != null && message.hasOwnProperty("begin"))
+                        if (message.begin != null && Object.hasOwnProperty.call(message, "begin"))
                             writer.uint32(/* id 3, wireType 0 =*/24).int32(message.begin);
-                        if (message.end != null && message.hasOwnProperty("end"))
+                        if (message.end != null && Object.hasOwnProperty.call(message, "end"))
                             writer.uint32(/* id 4, wireType 0 =*/32).int32(message.end);
                         return writer;
                     };
@@ -19911,9 +21521,9 @@
                 Duration.encode = function encode(message, writer) {
                     if (!writer)
                         writer = $Writer.create();
-                    if (message.seconds != null && message.hasOwnProperty("seconds"))
+                    if (message.seconds != null && Object.hasOwnProperty.call(message, "seconds"))
                         writer.uint32(/* id 1, wireType 0 =*/8).int64(message.seconds);
-                    if (message.nanos != null && message.hasOwnProperty("nanos"))
+                    if (message.nanos != null && Object.hasOwnProperty.call(message, "nanos"))
                         writer.uint32(/* id 2, wireType 0 =*/16).int32(message.nanos);
                     return writer;
                 };
@@ -20498,9 +22108,9 @@
                 Timestamp.encode = function encode(message, writer) {
                     if (!writer)
                         writer = $Writer.create();
-                    if (message.seconds != null && message.hasOwnProperty("seconds"))
+                    if (message.seconds != null && Object.hasOwnProperty.call(message, "seconds"))
                         writer.uint32(/* id 1, wireType 0 =*/8).int64(message.seconds);
-                    if (message.nanos != null && message.hasOwnProperty("nanos"))
+                    if (message.nanos != null && Object.hasOwnProperty.call(message, "nanos"))
                         writer.uint32(/* id 2, wireType 0 =*/16).int32(message.nanos);
                     return writer;
                 };
@@ -20658,2826 +22268,6 @@
             })();
     
             return protobuf;
-        })();
-    
-        google.iam = (function() {
-    
-            /**
-             * Namespace iam.
-             * @memberof google
-             * @namespace
-             */
-            var iam = {};
-    
-            iam.v1 = (function() {
-    
-                /**
-                 * Namespace v1.
-                 * @memberof google.iam
-                 * @namespace
-                 */
-                var v1 = {};
-    
-                v1.IAMPolicy = (function() {
-    
-                    /**
-                     * Constructs a new IAMPolicy service.
-                     * @memberof google.iam.v1
-                     * @classdesc Represents a IAMPolicy
-                     * @extends $protobuf.rpc.Service
-                     * @constructor
-                     * @param {$protobuf.RPCImpl} rpcImpl RPC implementation
-                     * @param {boolean} [requestDelimited=false] Whether requests are length-delimited
-                     * @param {boolean} [responseDelimited=false] Whether responses are length-delimited
-                     */
-                    function IAMPolicy(rpcImpl, requestDelimited, responseDelimited) {
-                        $protobuf.rpc.Service.call(this, rpcImpl, requestDelimited, responseDelimited);
-                    }
-    
-                    (IAMPolicy.prototype = Object.create($protobuf.rpc.Service.prototype)).constructor = IAMPolicy;
-    
-                    /**
-                     * Creates new IAMPolicy service using the specified rpc implementation.
-                     * @function create
-                     * @memberof google.iam.v1.IAMPolicy
-                     * @static
-                     * @param {$protobuf.RPCImpl} rpcImpl RPC implementation
-                     * @param {boolean} [requestDelimited=false] Whether requests are length-delimited
-                     * @param {boolean} [responseDelimited=false] Whether responses are length-delimited
-                     * @returns {IAMPolicy} RPC service. Useful where requests and/or responses are streamed.
-                     */
-                    IAMPolicy.create = function create(rpcImpl, requestDelimited, responseDelimited) {
-                        return new this(rpcImpl, requestDelimited, responseDelimited);
-                    };
-    
-                    /**
-                     * Callback as used by {@link google.iam.v1.IAMPolicy#setIamPolicy}.
-                     * @memberof google.iam.v1.IAMPolicy
-                     * @typedef SetIamPolicyCallback
-                     * @type {function}
-                     * @param {Error|null} error Error, if any
-                     * @param {google.iam.v1.Policy} [response] Policy
-                     */
-    
-                    /**
-                     * Calls SetIamPolicy.
-                     * @function setIamPolicy
-                     * @memberof google.iam.v1.IAMPolicy
-                     * @instance
-                     * @param {google.iam.v1.ISetIamPolicyRequest} request SetIamPolicyRequest message or plain object
-                     * @param {google.iam.v1.IAMPolicy.SetIamPolicyCallback} callback Node-style callback called with the error, if any, and Policy
-                     * @returns {undefined}
-                     * @variation 1
-                     */
-                    Object.defineProperty(IAMPolicy.prototype.setIamPolicy = function setIamPolicy(request, callback) {
-                        return this.rpcCall(setIamPolicy, $root.google.iam.v1.SetIamPolicyRequest, $root.google.iam.v1.Policy, request, callback);
-                    }, "name", { value: "SetIamPolicy" });
-    
-                    /**
-                     * Calls SetIamPolicy.
-                     * @function setIamPolicy
-                     * @memberof google.iam.v1.IAMPolicy
-                     * @instance
-                     * @param {google.iam.v1.ISetIamPolicyRequest} request SetIamPolicyRequest message or plain object
-                     * @returns {Promise<google.iam.v1.Policy>} Promise
-                     * @variation 2
-                     */
-    
-                    /**
-                     * Callback as used by {@link google.iam.v1.IAMPolicy#getIamPolicy}.
-                     * @memberof google.iam.v1.IAMPolicy
-                     * @typedef GetIamPolicyCallback
-                     * @type {function}
-                     * @param {Error|null} error Error, if any
-                     * @param {google.iam.v1.Policy} [response] Policy
-                     */
-    
-                    /**
-                     * Calls GetIamPolicy.
-                     * @function getIamPolicy
-                     * @memberof google.iam.v1.IAMPolicy
-                     * @instance
-                     * @param {google.iam.v1.IGetIamPolicyRequest} request GetIamPolicyRequest message or plain object
-                     * @param {google.iam.v1.IAMPolicy.GetIamPolicyCallback} callback Node-style callback called with the error, if any, and Policy
-                     * @returns {undefined}
-                     * @variation 1
-                     */
-                    Object.defineProperty(IAMPolicy.prototype.getIamPolicy = function getIamPolicy(request, callback) {
-                        return this.rpcCall(getIamPolicy, $root.google.iam.v1.GetIamPolicyRequest, $root.google.iam.v1.Policy, request, callback);
-                    }, "name", { value: "GetIamPolicy" });
-    
-                    /**
-                     * Calls GetIamPolicy.
-                     * @function getIamPolicy
-                     * @memberof google.iam.v1.IAMPolicy
-                     * @instance
-                     * @param {google.iam.v1.IGetIamPolicyRequest} request GetIamPolicyRequest message or plain object
-                     * @returns {Promise<google.iam.v1.Policy>} Promise
-                     * @variation 2
-                     */
-    
-                    /**
-                     * Callback as used by {@link google.iam.v1.IAMPolicy#testIamPermissions}.
-                     * @memberof google.iam.v1.IAMPolicy
-                     * @typedef TestIamPermissionsCallback
-                     * @type {function}
-                     * @param {Error|null} error Error, if any
-                     * @param {google.iam.v1.TestIamPermissionsResponse} [response] TestIamPermissionsResponse
-                     */
-    
-                    /**
-                     * Calls TestIamPermissions.
-                     * @function testIamPermissions
-                     * @memberof google.iam.v1.IAMPolicy
-                     * @instance
-                     * @param {google.iam.v1.ITestIamPermissionsRequest} request TestIamPermissionsRequest message or plain object
-                     * @param {google.iam.v1.IAMPolicy.TestIamPermissionsCallback} callback Node-style callback called with the error, if any, and TestIamPermissionsResponse
-                     * @returns {undefined}
-                     * @variation 1
-                     */
-                    Object.defineProperty(IAMPolicy.prototype.testIamPermissions = function testIamPermissions(request, callback) {
-                        return this.rpcCall(testIamPermissions, $root.google.iam.v1.TestIamPermissionsRequest, $root.google.iam.v1.TestIamPermissionsResponse, request, callback);
-                    }, "name", { value: "TestIamPermissions" });
-    
-                    /**
-                     * Calls TestIamPermissions.
-                     * @function testIamPermissions
-                     * @memberof google.iam.v1.IAMPolicy
-                     * @instance
-                     * @param {google.iam.v1.ITestIamPermissionsRequest} request TestIamPermissionsRequest message or plain object
-                     * @returns {Promise<google.iam.v1.TestIamPermissionsResponse>} Promise
-                     * @variation 2
-                     */
-    
-                    return IAMPolicy;
-                })();
-    
-                v1.SetIamPolicyRequest = (function() {
-    
-                    /**
-                     * Properties of a SetIamPolicyRequest.
-                     * @memberof google.iam.v1
-                     * @interface ISetIamPolicyRequest
-                     * @property {string|null} [resource] SetIamPolicyRequest resource
-                     * @property {google.iam.v1.IPolicy|null} [policy] SetIamPolicyRequest policy
-                     */
-    
-                    /**
-                     * Constructs a new SetIamPolicyRequest.
-                     * @memberof google.iam.v1
-                     * @classdesc Represents a SetIamPolicyRequest.
-                     * @implements ISetIamPolicyRequest
-                     * @constructor
-                     * @param {google.iam.v1.ISetIamPolicyRequest=} [properties] Properties to set
-                     */
-                    function SetIamPolicyRequest(properties) {
-                        if (properties)
-                            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                                if (properties[keys[i]] != null)
-                                    this[keys[i]] = properties[keys[i]];
-                    }
-    
-                    /**
-                     * SetIamPolicyRequest resource.
-                     * @member {string} resource
-                     * @memberof google.iam.v1.SetIamPolicyRequest
-                     * @instance
-                     */
-                    SetIamPolicyRequest.prototype.resource = "";
-    
-                    /**
-                     * SetIamPolicyRequest policy.
-                     * @member {google.iam.v1.IPolicy|null|undefined} policy
-                     * @memberof google.iam.v1.SetIamPolicyRequest
-                     * @instance
-                     */
-                    SetIamPolicyRequest.prototype.policy = null;
-    
-                    /**
-                     * Creates a new SetIamPolicyRequest instance using the specified properties.
-                     * @function create
-                     * @memberof google.iam.v1.SetIamPolicyRequest
-                     * @static
-                     * @param {google.iam.v1.ISetIamPolicyRequest=} [properties] Properties to set
-                     * @returns {google.iam.v1.SetIamPolicyRequest} SetIamPolicyRequest instance
-                     */
-                    SetIamPolicyRequest.create = function create(properties) {
-                        return new SetIamPolicyRequest(properties);
-                    };
-    
-                    /**
-                     * Encodes the specified SetIamPolicyRequest message. Does not implicitly {@link google.iam.v1.SetIamPolicyRequest.verify|verify} messages.
-                     * @function encode
-                     * @memberof google.iam.v1.SetIamPolicyRequest
-                     * @static
-                     * @param {google.iam.v1.ISetIamPolicyRequest} message SetIamPolicyRequest message or plain object to encode
-                     * @param {$protobuf.Writer} [writer] Writer to encode to
-                     * @returns {$protobuf.Writer} Writer
-                     */
-                    SetIamPolicyRequest.encode = function encode(message, writer) {
-                        if (!writer)
-                            writer = $Writer.create();
-                        if (message.resource != null && message.hasOwnProperty("resource"))
-                            writer.uint32(/* id 1, wireType 2 =*/10).string(message.resource);
-                        if (message.policy != null && message.hasOwnProperty("policy"))
-                            $root.google.iam.v1.Policy.encode(message.policy, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
-                        return writer;
-                    };
-    
-                    /**
-                     * Encodes the specified SetIamPolicyRequest message, length delimited. Does not implicitly {@link google.iam.v1.SetIamPolicyRequest.verify|verify} messages.
-                     * @function encodeDelimited
-                     * @memberof google.iam.v1.SetIamPolicyRequest
-                     * @static
-                     * @param {google.iam.v1.ISetIamPolicyRequest} message SetIamPolicyRequest message or plain object to encode
-                     * @param {$protobuf.Writer} [writer] Writer to encode to
-                     * @returns {$protobuf.Writer} Writer
-                     */
-                    SetIamPolicyRequest.encodeDelimited = function encodeDelimited(message, writer) {
-                        return this.encode(message, writer).ldelim();
-                    };
-    
-                    /**
-                     * Decodes a SetIamPolicyRequest message from the specified reader or buffer.
-                     * @function decode
-                     * @memberof google.iam.v1.SetIamPolicyRequest
-                     * @static
-                     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                     * @param {number} [length] Message length if known beforehand
-                     * @returns {google.iam.v1.SetIamPolicyRequest} SetIamPolicyRequest
-                     * @throws {Error} If the payload is not a reader or valid buffer
-                     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                     */
-                    SetIamPolicyRequest.decode = function decode(reader, length) {
-                        if (!(reader instanceof $Reader))
-                            reader = $Reader.create(reader);
-                        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.google.iam.v1.SetIamPolicyRequest();
-                        while (reader.pos < end) {
-                            var tag = reader.uint32();
-                            switch (tag >>> 3) {
-                            case 1:
-                                message.resource = reader.string();
-                                break;
-                            case 2:
-                                message.policy = $root.google.iam.v1.Policy.decode(reader, reader.uint32());
-                                break;
-                            default:
-                                reader.skipType(tag & 7);
-                                break;
-                            }
-                        }
-                        return message;
-                    };
-    
-                    /**
-                     * Decodes a SetIamPolicyRequest message from the specified reader or buffer, length delimited.
-                     * @function decodeDelimited
-                     * @memberof google.iam.v1.SetIamPolicyRequest
-                     * @static
-                     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                     * @returns {google.iam.v1.SetIamPolicyRequest} SetIamPolicyRequest
-                     * @throws {Error} If the payload is not a reader or valid buffer
-                     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                     */
-                    SetIamPolicyRequest.decodeDelimited = function decodeDelimited(reader) {
-                        if (!(reader instanceof $Reader))
-                            reader = new $Reader(reader);
-                        return this.decode(reader, reader.uint32());
-                    };
-    
-                    /**
-                     * Verifies a SetIamPolicyRequest message.
-                     * @function verify
-                     * @memberof google.iam.v1.SetIamPolicyRequest
-                     * @static
-                     * @param {Object.<string,*>} message Plain object to verify
-                     * @returns {string|null} `null` if valid, otherwise the reason why it is not
-                     */
-                    SetIamPolicyRequest.verify = function verify(message) {
-                        if (typeof message !== "object" || message === null)
-                            return "object expected";
-                        if (message.resource != null && message.hasOwnProperty("resource"))
-                            if (!$util.isString(message.resource))
-                                return "resource: string expected";
-                        if (message.policy != null && message.hasOwnProperty("policy")) {
-                            var error = $root.google.iam.v1.Policy.verify(message.policy);
-                            if (error)
-                                return "policy." + error;
-                        }
-                        return null;
-                    };
-    
-                    /**
-                     * Creates a SetIamPolicyRequest message from a plain object. Also converts values to their respective internal types.
-                     * @function fromObject
-                     * @memberof google.iam.v1.SetIamPolicyRequest
-                     * @static
-                     * @param {Object.<string,*>} object Plain object
-                     * @returns {google.iam.v1.SetIamPolicyRequest} SetIamPolicyRequest
-                     */
-                    SetIamPolicyRequest.fromObject = function fromObject(object) {
-                        if (object instanceof $root.google.iam.v1.SetIamPolicyRequest)
-                            return object;
-                        var message = new $root.google.iam.v1.SetIamPolicyRequest();
-                        if (object.resource != null)
-                            message.resource = String(object.resource);
-                        if (object.policy != null) {
-                            if (typeof object.policy !== "object")
-                                throw TypeError(".google.iam.v1.SetIamPolicyRequest.policy: object expected");
-                            message.policy = $root.google.iam.v1.Policy.fromObject(object.policy);
-                        }
-                        return message;
-                    };
-    
-                    /**
-                     * Creates a plain object from a SetIamPolicyRequest message. Also converts values to other types if specified.
-                     * @function toObject
-                     * @memberof google.iam.v1.SetIamPolicyRequest
-                     * @static
-                     * @param {google.iam.v1.SetIamPolicyRequest} message SetIamPolicyRequest
-                     * @param {$protobuf.IConversionOptions} [options] Conversion options
-                     * @returns {Object.<string,*>} Plain object
-                     */
-                    SetIamPolicyRequest.toObject = function toObject(message, options) {
-                        if (!options)
-                            options = {};
-                        var object = {};
-                        if (options.defaults) {
-                            object.resource = "";
-                            object.policy = null;
-                        }
-                        if (message.resource != null && message.hasOwnProperty("resource"))
-                            object.resource = message.resource;
-                        if (message.policy != null && message.hasOwnProperty("policy"))
-                            object.policy = $root.google.iam.v1.Policy.toObject(message.policy, options);
-                        return object;
-                    };
-    
-                    /**
-                     * Converts this SetIamPolicyRequest to JSON.
-                     * @function toJSON
-                     * @memberof google.iam.v1.SetIamPolicyRequest
-                     * @instance
-                     * @returns {Object.<string,*>} JSON object
-                     */
-                    SetIamPolicyRequest.prototype.toJSON = function toJSON() {
-                        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-                    };
-    
-                    return SetIamPolicyRequest;
-                })();
-    
-                v1.GetIamPolicyRequest = (function() {
-    
-                    /**
-                     * Properties of a GetIamPolicyRequest.
-                     * @memberof google.iam.v1
-                     * @interface IGetIamPolicyRequest
-                     * @property {string|null} [resource] GetIamPolicyRequest resource
-                     * @property {google.iam.v1.IGetPolicyOptions|null} [options] GetIamPolicyRequest options
-                     */
-    
-                    /**
-                     * Constructs a new GetIamPolicyRequest.
-                     * @memberof google.iam.v1
-                     * @classdesc Represents a GetIamPolicyRequest.
-                     * @implements IGetIamPolicyRequest
-                     * @constructor
-                     * @param {google.iam.v1.IGetIamPolicyRequest=} [properties] Properties to set
-                     */
-                    function GetIamPolicyRequest(properties) {
-                        if (properties)
-                            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                                if (properties[keys[i]] != null)
-                                    this[keys[i]] = properties[keys[i]];
-                    }
-    
-                    /**
-                     * GetIamPolicyRequest resource.
-                     * @member {string} resource
-                     * @memberof google.iam.v1.GetIamPolicyRequest
-                     * @instance
-                     */
-                    GetIamPolicyRequest.prototype.resource = "";
-    
-                    /**
-                     * GetIamPolicyRequest options.
-                     * @member {google.iam.v1.IGetPolicyOptions|null|undefined} options
-                     * @memberof google.iam.v1.GetIamPolicyRequest
-                     * @instance
-                     */
-                    GetIamPolicyRequest.prototype.options = null;
-    
-                    /**
-                     * Creates a new GetIamPolicyRequest instance using the specified properties.
-                     * @function create
-                     * @memberof google.iam.v1.GetIamPolicyRequest
-                     * @static
-                     * @param {google.iam.v1.IGetIamPolicyRequest=} [properties] Properties to set
-                     * @returns {google.iam.v1.GetIamPolicyRequest} GetIamPolicyRequest instance
-                     */
-                    GetIamPolicyRequest.create = function create(properties) {
-                        return new GetIamPolicyRequest(properties);
-                    };
-    
-                    /**
-                     * Encodes the specified GetIamPolicyRequest message. Does not implicitly {@link google.iam.v1.GetIamPolicyRequest.verify|verify} messages.
-                     * @function encode
-                     * @memberof google.iam.v1.GetIamPolicyRequest
-                     * @static
-                     * @param {google.iam.v1.IGetIamPolicyRequest} message GetIamPolicyRequest message or plain object to encode
-                     * @param {$protobuf.Writer} [writer] Writer to encode to
-                     * @returns {$protobuf.Writer} Writer
-                     */
-                    GetIamPolicyRequest.encode = function encode(message, writer) {
-                        if (!writer)
-                            writer = $Writer.create();
-                        if (message.resource != null && message.hasOwnProperty("resource"))
-                            writer.uint32(/* id 1, wireType 2 =*/10).string(message.resource);
-                        if (message.options != null && message.hasOwnProperty("options"))
-                            $root.google.iam.v1.GetPolicyOptions.encode(message.options, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
-                        return writer;
-                    };
-    
-                    /**
-                     * Encodes the specified GetIamPolicyRequest message, length delimited. Does not implicitly {@link google.iam.v1.GetIamPolicyRequest.verify|verify} messages.
-                     * @function encodeDelimited
-                     * @memberof google.iam.v1.GetIamPolicyRequest
-                     * @static
-                     * @param {google.iam.v1.IGetIamPolicyRequest} message GetIamPolicyRequest message or plain object to encode
-                     * @param {$protobuf.Writer} [writer] Writer to encode to
-                     * @returns {$protobuf.Writer} Writer
-                     */
-                    GetIamPolicyRequest.encodeDelimited = function encodeDelimited(message, writer) {
-                        return this.encode(message, writer).ldelim();
-                    };
-    
-                    /**
-                     * Decodes a GetIamPolicyRequest message from the specified reader or buffer.
-                     * @function decode
-                     * @memberof google.iam.v1.GetIamPolicyRequest
-                     * @static
-                     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                     * @param {number} [length] Message length if known beforehand
-                     * @returns {google.iam.v1.GetIamPolicyRequest} GetIamPolicyRequest
-                     * @throws {Error} If the payload is not a reader or valid buffer
-                     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                     */
-                    GetIamPolicyRequest.decode = function decode(reader, length) {
-                        if (!(reader instanceof $Reader))
-                            reader = $Reader.create(reader);
-                        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.google.iam.v1.GetIamPolicyRequest();
-                        while (reader.pos < end) {
-                            var tag = reader.uint32();
-                            switch (tag >>> 3) {
-                            case 1:
-                                message.resource = reader.string();
-                                break;
-                            case 2:
-                                message.options = $root.google.iam.v1.GetPolicyOptions.decode(reader, reader.uint32());
-                                break;
-                            default:
-                                reader.skipType(tag & 7);
-                                break;
-                            }
-                        }
-                        return message;
-                    };
-    
-                    /**
-                     * Decodes a GetIamPolicyRequest message from the specified reader or buffer, length delimited.
-                     * @function decodeDelimited
-                     * @memberof google.iam.v1.GetIamPolicyRequest
-                     * @static
-                     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                     * @returns {google.iam.v1.GetIamPolicyRequest} GetIamPolicyRequest
-                     * @throws {Error} If the payload is not a reader or valid buffer
-                     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                     */
-                    GetIamPolicyRequest.decodeDelimited = function decodeDelimited(reader) {
-                        if (!(reader instanceof $Reader))
-                            reader = new $Reader(reader);
-                        return this.decode(reader, reader.uint32());
-                    };
-    
-                    /**
-                     * Verifies a GetIamPolicyRequest message.
-                     * @function verify
-                     * @memberof google.iam.v1.GetIamPolicyRequest
-                     * @static
-                     * @param {Object.<string,*>} message Plain object to verify
-                     * @returns {string|null} `null` if valid, otherwise the reason why it is not
-                     */
-                    GetIamPolicyRequest.verify = function verify(message) {
-                        if (typeof message !== "object" || message === null)
-                            return "object expected";
-                        if (message.resource != null && message.hasOwnProperty("resource"))
-                            if (!$util.isString(message.resource))
-                                return "resource: string expected";
-                        if (message.options != null && message.hasOwnProperty("options")) {
-                            var error = $root.google.iam.v1.GetPolicyOptions.verify(message.options);
-                            if (error)
-                                return "options." + error;
-                        }
-                        return null;
-                    };
-    
-                    /**
-                     * Creates a GetIamPolicyRequest message from a plain object. Also converts values to their respective internal types.
-                     * @function fromObject
-                     * @memberof google.iam.v1.GetIamPolicyRequest
-                     * @static
-                     * @param {Object.<string,*>} object Plain object
-                     * @returns {google.iam.v1.GetIamPolicyRequest} GetIamPolicyRequest
-                     */
-                    GetIamPolicyRequest.fromObject = function fromObject(object) {
-                        if (object instanceof $root.google.iam.v1.GetIamPolicyRequest)
-                            return object;
-                        var message = new $root.google.iam.v1.GetIamPolicyRequest();
-                        if (object.resource != null)
-                            message.resource = String(object.resource);
-                        if (object.options != null) {
-                            if (typeof object.options !== "object")
-                                throw TypeError(".google.iam.v1.GetIamPolicyRequest.options: object expected");
-                            message.options = $root.google.iam.v1.GetPolicyOptions.fromObject(object.options);
-                        }
-                        return message;
-                    };
-    
-                    /**
-                     * Creates a plain object from a GetIamPolicyRequest message. Also converts values to other types if specified.
-                     * @function toObject
-                     * @memberof google.iam.v1.GetIamPolicyRequest
-                     * @static
-                     * @param {google.iam.v1.GetIamPolicyRequest} message GetIamPolicyRequest
-                     * @param {$protobuf.IConversionOptions} [options] Conversion options
-                     * @returns {Object.<string,*>} Plain object
-                     */
-                    GetIamPolicyRequest.toObject = function toObject(message, options) {
-                        if (!options)
-                            options = {};
-                        var object = {};
-                        if (options.defaults) {
-                            object.resource = "";
-                            object.options = null;
-                        }
-                        if (message.resource != null && message.hasOwnProperty("resource"))
-                            object.resource = message.resource;
-                        if (message.options != null && message.hasOwnProperty("options"))
-                            object.options = $root.google.iam.v1.GetPolicyOptions.toObject(message.options, options);
-                        return object;
-                    };
-    
-                    /**
-                     * Converts this GetIamPolicyRequest to JSON.
-                     * @function toJSON
-                     * @memberof google.iam.v1.GetIamPolicyRequest
-                     * @instance
-                     * @returns {Object.<string,*>} JSON object
-                     */
-                    GetIamPolicyRequest.prototype.toJSON = function toJSON() {
-                        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-                    };
-    
-                    return GetIamPolicyRequest;
-                })();
-    
-                v1.TestIamPermissionsRequest = (function() {
-    
-                    /**
-                     * Properties of a TestIamPermissionsRequest.
-                     * @memberof google.iam.v1
-                     * @interface ITestIamPermissionsRequest
-                     * @property {string|null} [resource] TestIamPermissionsRequest resource
-                     * @property {Array.<string>|null} [permissions] TestIamPermissionsRequest permissions
-                     */
-    
-                    /**
-                     * Constructs a new TestIamPermissionsRequest.
-                     * @memberof google.iam.v1
-                     * @classdesc Represents a TestIamPermissionsRequest.
-                     * @implements ITestIamPermissionsRequest
-                     * @constructor
-                     * @param {google.iam.v1.ITestIamPermissionsRequest=} [properties] Properties to set
-                     */
-                    function TestIamPermissionsRequest(properties) {
-                        this.permissions = [];
-                        if (properties)
-                            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                                if (properties[keys[i]] != null)
-                                    this[keys[i]] = properties[keys[i]];
-                    }
-    
-                    /**
-                     * TestIamPermissionsRequest resource.
-                     * @member {string} resource
-                     * @memberof google.iam.v1.TestIamPermissionsRequest
-                     * @instance
-                     */
-                    TestIamPermissionsRequest.prototype.resource = "";
-    
-                    /**
-                     * TestIamPermissionsRequest permissions.
-                     * @member {Array.<string>} permissions
-                     * @memberof google.iam.v1.TestIamPermissionsRequest
-                     * @instance
-                     */
-                    TestIamPermissionsRequest.prototype.permissions = $util.emptyArray;
-    
-                    /**
-                     * Creates a new TestIamPermissionsRequest instance using the specified properties.
-                     * @function create
-                     * @memberof google.iam.v1.TestIamPermissionsRequest
-                     * @static
-                     * @param {google.iam.v1.ITestIamPermissionsRequest=} [properties] Properties to set
-                     * @returns {google.iam.v1.TestIamPermissionsRequest} TestIamPermissionsRequest instance
-                     */
-                    TestIamPermissionsRequest.create = function create(properties) {
-                        return new TestIamPermissionsRequest(properties);
-                    };
-    
-                    /**
-                     * Encodes the specified TestIamPermissionsRequest message. Does not implicitly {@link google.iam.v1.TestIamPermissionsRequest.verify|verify} messages.
-                     * @function encode
-                     * @memberof google.iam.v1.TestIamPermissionsRequest
-                     * @static
-                     * @param {google.iam.v1.ITestIamPermissionsRequest} message TestIamPermissionsRequest message or plain object to encode
-                     * @param {$protobuf.Writer} [writer] Writer to encode to
-                     * @returns {$protobuf.Writer} Writer
-                     */
-                    TestIamPermissionsRequest.encode = function encode(message, writer) {
-                        if (!writer)
-                            writer = $Writer.create();
-                        if (message.resource != null && message.hasOwnProperty("resource"))
-                            writer.uint32(/* id 1, wireType 2 =*/10).string(message.resource);
-                        if (message.permissions != null && message.permissions.length)
-                            for (var i = 0; i < message.permissions.length; ++i)
-                                writer.uint32(/* id 2, wireType 2 =*/18).string(message.permissions[i]);
-                        return writer;
-                    };
-    
-                    /**
-                     * Encodes the specified TestIamPermissionsRequest message, length delimited. Does not implicitly {@link google.iam.v1.TestIamPermissionsRequest.verify|verify} messages.
-                     * @function encodeDelimited
-                     * @memberof google.iam.v1.TestIamPermissionsRequest
-                     * @static
-                     * @param {google.iam.v1.ITestIamPermissionsRequest} message TestIamPermissionsRequest message or plain object to encode
-                     * @param {$protobuf.Writer} [writer] Writer to encode to
-                     * @returns {$protobuf.Writer} Writer
-                     */
-                    TestIamPermissionsRequest.encodeDelimited = function encodeDelimited(message, writer) {
-                        return this.encode(message, writer).ldelim();
-                    };
-    
-                    /**
-                     * Decodes a TestIamPermissionsRequest message from the specified reader or buffer.
-                     * @function decode
-                     * @memberof google.iam.v1.TestIamPermissionsRequest
-                     * @static
-                     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                     * @param {number} [length] Message length if known beforehand
-                     * @returns {google.iam.v1.TestIamPermissionsRequest} TestIamPermissionsRequest
-                     * @throws {Error} If the payload is not a reader or valid buffer
-                     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                     */
-                    TestIamPermissionsRequest.decode = function decode(reader, length) {
-                        if (!(reader instanceof $Reader))
-                            reader = $Reader.create(reader);
-                        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.google.iam.v1.TestIamPermissionsRequest();
-                        while (reader.pos < end) {
-                            var tag = reader.uint32();
-                            switch (tag >>> 3) {
-                            case 1:
-                                message.resource = reader.string();
-                                break;
-                            case 2:
-                                if (!(message.permissions && message.permissions.length))
-                                    message.permissions = [];
-                                message.permissions.push(reader.string());
-                                break;
-                            default:
-                                reader.skipType(tag & 7);
-                                break;
-                            }
-                        }
-                        return message;
-                    };
-    
-                    /**
-                     * Decodes a TestIamPermissionsRequest message from the specified reader or buffer, length delimited.
-                     * @function decodeDelimited
-                     * @memberof google.iam.v1.TestIamPermissionsRequest
-                     * @static
-                     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                     * @returns {google.iam.v1.TestIamPermissionsRequest} TestIamPermissionsRequest
-                     * @throws {Error} If the payload is not a reader or valid buffer
-                     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                     */
-                    TestIamPermissionsRequest.decodeDelimited = function decodeDelimited(reader) {
-                        if (!(reader instanceof $Reader))
-                            reader = new $Reader(reader);
-                        return this.decode(reader, reader.uint32());
-                    };
-    
-                    /**
-                     * Verifies a TestIamPermissionsRequest message.
-                     * @function verify
-                     * @memberof google.iam.v1.TestIamPermissionsRequest
-                     * @static
-                     * @param {Object.<string,*>} message Plain object to verify
-                     * @returns {string|null} `null` if valid, otherwise the reason why it is not
-                     */
-                    TestIamPermissionsRequest.verify = function verify(message) {
-                        if (typeof message !== "object" || message === null)
-                            return "object expected";
-                        if (message.resource != null && message.hasOwnProperty("resource"))
-                            if (!$util.isString(message.resource))
-                                return "resource: string expected";
-                        if (message.permissions != null && message.hasOwnProperty("permissions")) {
-                            if (!Array.isArray(message.permissions))
-                                return "permissions: array expected";
-                            for (var i = 0; i < message.permissions.length; ++i)
-                                if (!$util.isString(message.permissions[i]))
-                                    return "permissions: string[] expected";
-                        }
-                        return null;
-                    };
-    
-                    /**
-                     * Creates a TestIamPermissionsRequest message from a plain object. Also converts values to their respective internal types.
-                     * @function fromObject
-                     * @memberof google.iam.v1.TestIamPermissionsRequest
-                     * @static
-                     * @param {Object.<string,*>} object Plain object
-                     * @returns {google.iam.v1.TestIamPermissionsRequest} TestIamPermissionsRequest
-                     */
-                    TestIamPermissionsRequest.fromObject = function fromObject(object) {
-                        if (object instanceof $root.google.iam.v1.TestIamPermissionsRequest)
-                            return object;
-                        var message = new $root.google.iam.v1.TestIamPermissionsRequest();
-                        if (object.resource != null)
-                            message.resource = String(object.resource);
-                        if (object.permissions) {
-                            if (!Array.isArray(object.permissions))
-                                throw TypeError(".google.iam.v1.TestIamPermissionsRequest.permissions: array expected");
-                            message.permissions = [];
-                            for (var i = 0; i < object.permissions.length; ++i)
-                                message.permissions[i] = String(object.permissions[i]);
-                        }
-                        return message;
-                    };
-    
-                    /**
-                     * Creates a plain object from a TestIamPermissionsRequest message. Also converts values to other types if specified.
-                     * @function toObject
-                     * @memberof google.iam.v1.TestIamPermissionsRequest
-                     * @static
-                     * @param {google.iam.v1.TestIamPermissionsRequest} message TestIamPermissionsRequest
-                     * @param {$protobuf.IConversionOptions} [options] Conversion options
-                     * @returns {Object.<string,*>} Plain object
-                     */
-                    TestIamPermissionsRequest.toObject = function toObject(message, options) {
-                        if (!options)
-                            options = {};
-                        var object = {};
-                        if (options.arrays || options.defaults)
-                            object.permissions = [];
-                        if (options.defaults)
-                            object.resource = "";
-                        if (message.resource != null && message.hasOwnProperty("resource"))
-                            object.resource = message.resource;
-                        if (message.permissions && message.permissions.length) {
-                            object.permissions = [];
-                            for (var j = 0; j < message.permissions.length; ++j)
-                                object.permissions[j] = message.permissions[j];
-                        }
-                        return object;
-                    };
-    
-                    /**
-                     * Converts this TestIamPermissionsRequest to JSON.
-                     * @function toJSON
-                     * @memberof google.iam.v1.TestIamPermissionsRequest
-                     * @instance
-                     * @returns {Object.<string,*>} JSON object
-                     */
-                    TestIamPermissionsRequest.prototype.toJSON = function toJSON() {
-                        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-                    };
-    
-                    return TestIamPermissionsRequest;
-                })();
-    
-                v1.TestIamPermissionsResponse = (function() {
-    
-                    /**
-                     * Properties of a TestIamPermissionsResponse.
-                     * @memberof google.iam.v1
-                     * @interface ITestIamPermissionsResponse
-                     * @property {Array.<string>|null} [permissions] TestIamPermissionsResponse permissions
-                     */
-    
-                    /**
-                     * Constructs a new TestIamPermissionsResponse.
-                     * @memberof google.iam.v1
-                     * @classdesc Represents a TestIamPermissionsResponse.
-                     * @implements ITestIamPermissionsResponse
-                     * @constructor
-                     * @param {google.iam.v1.ITestIamPermissionsResponse=} [properties] Properties to set
-                     */
-                    function TestIamPermissionsResponse(properties) {
-                        this.permissions = [];
-                        if (properties)
-                            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                                if (properties[keys[i]] != null)
-                                    this[keys[i]] = properties[keys[i]];
-                    }
-    
-                    /**
-                     * TestIamPermissionsResponse permissions.
-                     * @member {Array.<string>} permissions
-                     * @memberof google.iam.v1.TestIamPermissionsResponse
-                     * @instance
-                     */
-                    TestIamPermissionsResponse.prototype.permissions = $util.emptyArray;
-    
-                    /**
-                     * Creates a new TestIamPermissionsResponse instance using the specified properties.
-                     * @function create
-                     * @memberof google.iam.v1.TestIamPermissionsResponse
-                     * @static
-                     * @param {google.iam.v1.ITestIamPermissionsResponse=} [properties] Properties to set
-                     * @returns {google.iam.v1.TestIamPermissionsResponse} TestIamPermissionsResponse instance
-                     */
-                    TestIamPermissionsResponse.create = function create(properties) {
-                        return new TestIamPermissionsResponse(properties);
-                    };
-    
-                    /**
-                     * Encodes the specified TestIamPermissionsResponse message. Does not implicitly {@link google.iam.v1.TestIamPermissionsResponse.verify|verify} messages.
-                     * @function encode
-                     * @memberof google.iam.v1.TestIamPermissionsResponse
-                     * @static
-                     * @param {google.iam.v1.ITestIamPermissionsResponse} message TestIamPermissionsResponse message or plain object to encode
-                     * @param {$protobuf.Writer} [writer] Writer to encode to
-                     * @returns {$protobuf.Writer} Writer
-                     */
-                    TestIamPermissionsResponse.encode = function encode(message, writer) {
-                        if (!writer)
-                            writer = $Writer.create();
-                        if (message.permissions != null && message.permissions.length)
-                            for (var i = 0; i < message.permissions.length; ++i)
-                                writer.uint32(/* id 1, wireType 2 =*/10).string(message.permissions[i]);
-                        return writer;
-                    };
-    
-                    /**
-                     * Encodes the specified TestIamPermissionsResponse message, length delimited. Does not implicitly {@link google.iam.v1.TestIamPermissionsResponse.verify|verify} messages.
-                     * @function encodeDelimited
-                     * @memberof google.iam.v1.TestIamPermissionsResponse
-                     * @static
-                     * @param {google.iam.v1.ITestIamPermissionsResponse} message TestIamPermissionsResponse message or plain object to encode
-                     * @param {$protobuf.Writer} [writer] Writer to encode to
-                     * @returns {$protobuf.Writer} Writer
-                     */
-                    TestIamPermissionsResponse.encodeDelimited = function encodeDelimited(message, writer) {
-                        return this.encode(message, writer).ldelim();
-                    };
-    
-                    /**
-                     * Decodes a TestIamPermissionsResponse message from the specified reader or buffer.
-                     * @function decode
-                     * @memberof google.iam.v1.TestIamPermissionsResponse
-                     * @static
-                     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                     * @param {number} [length] Message length if known beforehand
-                     * @returns {google.iam.v1.TestIamPermissionsResponse} TestIamPermissionsResponse
-                     * @throws {Error} If the payload is not a reader or valid buffer
-                     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                     */
-                    TestIamPermissionsResponse.decode = function decode(reader, length) {
-                        if (!(reader instanceof $Reader))
-                            reader = $Reader.create(reader);
-                        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.google.iam.v1.TestIamPermissionsResponse();
-                        while (reader.pos < end) {
-                            var tag = reader.uint32();
-                            switch (tag >>> 3) {
-                            case 1:
-                                if (!(message.permissions && message.permissions.length))
-                                    message.permissions = [];
-                                message.permissions.push(reader.string());
-                                break;
-                            default:
-                                reader.skipType(tag & 7);
-                                break;
-                            }
-                        }
-                        return message;
-                    };
-    
-                    /**
-                     * Decodes a TestIamPermissionsResponse message from the specified reader or buffer, length delimited.
-                     * @function decodeDelimited
-                     * @memberof google.iam.v1.TestIamPermissionsResponse
-                     * @static
-                     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                     * @returns {google.iam.v1.TestIamPermissionsResponse} TestIamPermissionsResponse
-                     * @throws {Error} If the payload is not a reader or valid buffer
-                     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                     */
-                    TestIamPermissionsResponse.decodeDelimited = function decodeDelimited(reader) {
-                        if (!(reader instanceof $Reader))
-                            reader = new $Reader(reader);
-                        return this.decode(reader, reader.uint32());
-                    };
-    
-                    /**
-                     * Verifies a TestIamPermissionsResponse message.
-                     * @function verify
-                     * @memberof google.iam.v1.TestIamPermissionsResponse
-                     * @static
-                     * @param {Object.<string,*>} message Plain object to verify
-                     * @returns {string|null} `null` if valid, otherwise the reason why it is not
-                     */
-                    TestIamPermissionsResponse.verify = function verify(message) {
-                        if (typeof message !== "object" || message === null)
-                            return "object expected";
-                        if (message.permissions != null && message.hasOwnProperty("permissions")) {
-                            if (!Array.isArray(message.permissions))
-                                return "permissions: array expected";
-                            for (var i = 0; i < message.permissions.length; ++i)
-                                if (!$util.isString(message.permissions[i]))
-                                    return "permissions: string[] expected";
-                        }
-                        return null;
-                    };
-    
-                    /**
-                     * Creates a TestIamPermissionsResponse message from a plain object. Also converts values to their respective internal types.
-                     * @function fromObject
-                     * @memberof google.iam.v1.TestIamPermissionsResponse
-                     * @static
-                     * @param {Object.<string,*>} object Plain object
-                     * @returns {google.iam.v1.TestIamPermissionsResponse} TestIamPermissionsResponse
-                     */
-                    TestIamPermissionsResponse.fromObject = function fromObject(object) {
-                        if (object instanceof $root.google.iam.v1.TestIamPermissionsResponse)
-                            return object;
-                        var message = new $root.google.iam.v1.TestIamPermissionsResponse();
-                        if (object.permissions) {
-                            if (!Array.isArray(object.permissions))
-                                throw TypeError(".google.iam.v1.TestIamPermissionsResponse.permissions: array expected");
-                            message.permissions = [];
-                            for (var i = 0; i < object.permissions.length; ++i)
-                                message.permissions[i] = String(object.permissions[i]);
-                        }
-                        return message;
-                    };
-    
-                    /**
-                     * Creates a plain object from a TestIamPermissionsResponse message. Also converts values to other types if specified.
-                     * @function toObject
-                     * @memberof google.iam.v1.TestIamPermissionsResponse
-                     * @static
-                     * @param {google.iam.v1.TestIamPermissionsResponse} message TestIamPermissionsResponse
-                     * @param {$protobuf.IConversionOptions} [options] Conversion options
-                     * @returns {Object.<string,*>} Plain object
-                     */
-                    TestIamPermissionsResponse.toObject = function toObject(message, options) {
-                        if (!options)
-                            options = {};
-                        var object = {};
-                        if (options.arrays || options.defaults)
-                            object.permissions = [];
-                        if (message.permissions && message.permissions.length) {
-                            object.permissions = [];
-                            for (var j = 0; j < message.permissions.length; ++j)
-                                object.permissions[j] = message.permissions[j];
-                        }
-                        return object;
-                    };
-    
-                    /**
-                     * Converts this TestIamPermissionsResponse to JSON.
-                     * @function toJSON
-                     * @memberof google.iam.v1.TestIamPermissionsResponse
-                     * @instance
-                     * @returns {Object.<string,*>} JSON object
-                     */
-                    TestIamPermissionsResponse.prototype.toJSON = function toJSON() {
-                        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-                    };
-    
-                    return TestIamPermissionsResponse;
-                })();
-    
-                v1.GetPolicyOptions = (function() {
-    
-                    /**
-                     * Properties of a GetPolicyOptions.
-                     * @memberof google.iam.v1
-                     * @interface IGetPolicyOptions
-                     * @property {number|null} [requestedPolicyVersion] GetPolicyOptions requestedPolicyVersion
-                     */
-    
-                    /**
-                     * Constructs a new GetPolicyOptions.
-                     * @memberof google.iam.v1
-                     * @classdesc Represents a GetPolicyOptions.
-                     * @implements IGetPolicyOptions
-                     * @constructor
-                     * @param {google.iam.v1.IGetPolicyOptions=} [properties] Properties to set
-                     */
-                    function GetPolicyOptions(properties) {
-                        if (properties)
-                            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                                if (properties[keys[i]] != null)
-                                    this[keys[i]] = properties[keys[i]];
-                    }
-    
-                    /**
-                     * GetPolicyOptions requestedPolicyVersion.
-                     * @member {number} requestedPolicyVersion
-                     * @memberof google.iam.v1.GetPolicyOptions
-                     * @instance
-                     */
-                    GetPolicyOptions.prototype.requestedPolicyVersion = 0;
-    
-                    /**
-                     * Creates a new GetPolicyOptions instance using the specified properties.
-                     * @function create
-                     * @memberof google.iam.v1.GetPolicyOptions
-                     * @static
-                     * @param {google.iam.v1.IGetPolicyOptions=} [properties] Properties to set
-                     * @returns {google.iam.v1.GetPolicyOptions} GetPolicyOptions instance
-                     */
-                    GetPolicyOptions.create = function create(properties) {
-                        return new GetPolicyOptions(properties);
-                    };
-    
-                    /**
-                     * Encodes the specified GetPolicyOptions message. Does not implicitly {@link google.iam.v1.GetPolicyOptions.verify|verify} messages.
-                     * @function encode
-                     * @memberof google.iam.v1.GetPolicyOptions
-                     * @static
-                     * @param {google.iam.v1.IGetPolicyOptions} message GetPolicyOptions message or plain object to encode
-                     * @param {$protobuf.Writer} [writer] Writer to encode to
-                     * @returns {$protobuf.Writer} Writer
-                     */
-                    GetPolicyOptions.encode = function encode(message, writer) {
-                        if (!writer)
-                            writer = $Writer.create();
-                        if (message.requestedPolicyVersion != null && message.hasOwnProperty("requestedPolicyVersion"))
-                            writer.uint32(/* id 1, wireType 0 =*/8).int32(message.requestedPolicyVersion);
-                        return writer;
-                    };
-    
-                    /**
-                     * Encodes the specified GetPolicyOptions message, length delimited. Does not implicitly {@link google.iam.v1.GetPolicyOptions.verify|verify} messages.
-                     * @function encodeDelimited
-                     * @memberof google.iam.v1.GetPolicyOptions
-                     * @static
-                     * @param {google.iam.v1.IGetPolicyOptions} message GetPolicyOptions message or plain object to encode
-                     * @param {$protobuf.Writer} [writer] Writer to encode to
-                     * @returns {$protobuf.Writer} Writer
-                     */
-                    GetPolicyOptions.encodeDelimited = function encodeDelimited(message, writer) {
-                        return this.encode(message, writer).ldelim();
-                    };
-    
-                    /**
-                     * Decodes a GetPolicyOptions message from the specified reader or buffer.
-                     * @function decode
-                     * @memberof google.iam.v1.GetPolicyOptions
-                     * @static
-                     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                     * @param {number} [length] Message length if known beforehand
-                     * @returns {google.iam.v1.GetPolicyOptions} GetPolicyOptions
-                     * @throws {Error} If the payload is not a reader or valid buffer
-                     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                     */
-                    GetPolicyOptions.decode = function decode(reader, length) {
-                        if (!(reader instanceof $Reader))
-                            reader = $Reader.create(reader);
-                        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.google.iam.v1.GetPolicyOptions();
-                        while (reader.pos < end) {
-                            var tag = reader.uint32();
-                            switch (tag >>> 3) {
-                            case 1:
-                                message.requestedPolicyVersion = reader.int32();
-                                break;
-                            default:
-                                reader.skipType(tag & 7);
-                                break;
-                            }
-                        }
-                        return message;
-                    };
-    
-                    /**
-                     * Decodes a GetPolicyOptions message from the specified reader or buffer, length delimited.
-                     * @function decodeDelimited
-                     * @memberof google.iam.v1.GetPolicyOptions
-                     * @static
-                     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                     * @returns {google.iam.v1.GetPolicyOptions} GetPolicyOptions
-                     * @throws {Error} If the payload is not a reader or valid buffer
-                     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                     */
-                    GetPolicyOptions.decodeDelimited = function decodeDelimited(reader) {
-                        if (!(reader instanceof $Reader))
-                            reader = new $Reader(reader);
-                        return this.decode(reader, reader.uint32());
-                    };
-    
-                    /**
-                     * Verifies a GetPolicyOptions message.
-                     * @function verify
-                     * @memberof google.iam.v1.GetPolicyOptions
-                     * @static
-                     * @param {Object.<string,*>} message Plain object to verify
-                     * @returns {string|null} `null` if valid, otherwise the reason why it is not
-                     */
-                    GetPolicyOptions.verify = function verify(message) {
-                        if (typeof message !== "object" || message === null)
-                            return "object expected";
-                        if (message.requestedPolicyVersion != null && message.hasOwnProperty("requestedPolicyVersion"))
-                            if (!$util.isInteger(message.requestedPolicyVersion))
-                                return "requestedPolicyVersion: integer expected";
-                        return null;
-                    };
-    
-                    /**
-                     * Creates a GetPolicyOptions message from a plain object. Also converts values to their respective internal types.
-                     * @function fromObject
-                     * @memberof google.iam.v1.GetPolicyOptions
-                     * @static
-                     * @param {Object.<string,*>} object Plain object
-                     * @returns {google.iam.v1.GetPolicyOptions} GetPolicyOptions
-                     */
-                    GetPolicyOptions.fromObject = function fromObject(object) {
-                        if (object instanceof $root.google.iam.v1.GetPolicyOptions)
-                            return object;
-                        var message = new $root.google.iam.v1.GetPolicyOptions();
-                        if (object.requestedPolicyVersion != null)
-                            message.requestedPolicyVersion = object.requestedPolicyVersion | 0;
-                        return message;
-                    };
-    
-                    /**
-                     * Creates a plain object from a GetPolicyOptions message. Also converts values to other types if specified.
-                     * @function toObject
-                     * @memberof google.iam.v1.GetPolicyOptions
-                     * @static
-                     * @param {google.iam.v1.GetPolicyOptions} message GetPolicyOptions
-                     * @param {$protobuf.IConversionOptions} [options] Conversion options
-                     * @returns {Object.<string,*>} Plain object
-                     */
-                    GetPolicyOptions.toObject = function toObject(message, options) {
-                        if (!options)
-                            options = {};
-                        var object = {};
-                        if (options.defaults)
-                            object.requestedPolicyVersion = 0;
-                        if (message.requestedPolicyVersion != null && message.hasOwnProperty("requestedPolicyVersion"))
-                            object.requestedPolicyVersion = message.requestedPolicyVersion;
-                        return object;
-                    };
-    
-                    /**
-                     * Converts this GetPolicyOptions to JSON.
-                     * @function toJSON
-                     * @memberof google.iam.v1.GetPolicyOptions
-                     * @instance
-                     * @returns {Object.<string,*>} JSON object
-                     */
-                    GetPolicyOptions.prototype.toJSON = function toJSON() {
-                        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-                    };
-    
-                    return GetPolicyOptions;
-                })();
-    
-                v1.Policy = (function() {
-    
-                    /**
-                     * Properties of a Policy.
-                     * @memberof google.iam.v1
-                     * @interface IPolicy
-                     * @property {number|null} [version] Policy version
-                     * @property {Array.<google.iam.v1.IBinding>|null} [bindings] Policy bindings
-                     * @property {Uint8Array|null} [etag] Policy etag
-                     */
-    
-                    /**
-                     * Constructs a new Policy.
-                     * @memberof google.iam.v1
-                     * @classdesc Represents a Policy.
-                     * @implements IPolicy
-                     * @constructor
-                     * @param {google.iam.v1.IPolicy=} [properties] Properties to set
-                     */
-                    function Policy(properties) {
-                        this.bindings = [];
-                        if (properties)
-                            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                                if (properties[keys[i]] != null)
-                                    this[keys[i]] = properties[keys[i]];
-                    }
-    
-                    /**
-                     * Policy version.
-                     * @member {number} version
-                     * @memberof google.iam.v1.Policy
-                     * @instance
-                     */
-                    Policy.prototype.version = 0;
-    
-                    /**
-                     * Policy bindings.
-                     * @member {Array.<google.iam.v1.IBinding>} bindings
-                     * @memberof google.iam.v1.Policy
-                     * @instance
-                     */
-                    Policy.prototype.bindings = $util.emptyArray;
-    
-                    /**
-                     * Policy etag.
-                     * @member {Uint8Array} etag
-                     * @memberof google.iam.v1.Policy
-                     * @instance
-                     */
-                    Policy.prototype.etag = $util.newBuffer([]);
-    
-                    /**
-                     * Creates a new Policy instance using the specified properties.
-                     * @function create
-                     * @memberof google.iam.v1.Policy
-                     * @static
-                     * @param {google.iam.v1.IPolicy=} [properties] Properties to set
-                     * @returns {google.iam.v1.Policy} Policy instance
-                     */
-                    Policy.create = function create(properties) {
-                        return new Policy(properties);
-                    };
-    
-                    /**
-                     * Encodes the specified Policy message. Does not implicitly {@link google.iam.v1.Policy.verify|verify} messages.
-                     * @function encode
-                     * @memberof google.iam.v1.Policy
-                     * @static
-                     * @param {google.iam.v1.IPolicy} message Policy message or plain object to encode
-                     * @param {$protobuf.Writer} [writer] Writer to encode to
-                     * @returns {$protobuf.Writer} Writer
-                     */
-                    Policy.encode = function encode(message, writer) {
-                        if (!writer)
-                            writer = $Writer.create();
-                        if (message.version != null && message.hasOwnProperty("version"))
-                            writer.uint32(/* id 1, wireType 0 =*/8).int32(message.version);
-                        if (message.etag != null && message.hasOwnProperty("etag"))
-                            writer.uint32(/* id 3, wireType 2 =*/26).bytes(message.etag);
-                        if (message.bindings != null && message.bindings.length)
-                            for (var i = 0; i < message.bindings.length; ++i)
-                                $root.google.iam.v1.Binding.encode(message.bindings[i], writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
-                        return writer;
-                    };
-    
-                    /**
-                     * Encodes the specified Policy message, length delimited. Does not implicitly {@link google.iam.v1.Policy.verify|verify} messages.
-                     * @function encodeDelimited
-                     * @memberof google.iam.v1.Policy
-                     * @static
-                     * @param {google.iam.v1.IPolicy} message Policy message or plain object to encode
-                     * @param {$protobuf.Writer} [writer] Writer to encode to
-                     * @returns {$protobuf.Writer} Writer
-                     */
-                    Policy.encodeDelimited = function encodeDelimited(message, writer) {
-                        return this.encode(message, writer).ldelim();
-                    };
-    
-                    /**
-                     * Decodes a Policy message from the specified reader or buffer.
-                     * @function decode
-                     * @memberof google.iam.v1.Policy
-                     * @static
-                     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                     * @param {number} [length] Message length if known beforehand
-                     * @returns {google.iam.v1.Policy} Policy
-                     * @throws {Error} If the payload is not a reader or valid buffer
-                     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                     */
-                    Policy.decode = function decode(reader, length) {
-                        if (!(reader instanceof $Reader))
-                            reader = $Reader.create(reader);
-                        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.google.iam.v1.Policy();
-                        while (reader.pos < end) {
-                            var tag = reader.uint32();
-                            switch (tag >>> 3) {
-                            case 1:
-                                message.version = reader.int32();
-                                break;
-                            case 4:
-                                if (!(message.bindings && message.bindings.length))
-                                    message.bindings = [];
-                                message.bindings.push($root.google.iam.v1.Binding.decode(reader, reader.uint32()));
-                                break;
-                            case 3:
-                                message.etag = reader.bytes();
-                                break;
-                            default:
-                                reader.skipType(tag & 7);
-                                break;
-                            }
-                        }
-                        return message;
-                    };
-    
-                    /**
-                     * Decodes a Policy message from the specified reader or buffer, length delimited.
-                     * @function decodeDelimited
-                     * @memberof google.iam.v1.Policy
-                     * @static
-                     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                     * @returns {google.iam.v1.Policy} Policy
-                     * @throws {Error} If the payload is not a reader or valid buffer
-                     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                     */
-                    Policy.decodeDelimited = function decodeDelimited(reader) {
-                        if (!(reader instanceof $Reader))
-                            reader = new $Reader(reader);
-                        return this.decode(reader, reader.uint32());
-                    };
-    
-                    /**
-                     * Verifies a Policy message.
-                     * @function verify
-                     * @memberof google.iam.v1.Policy
-                     * @static
-                     * @param {Object.<string,*>} message Plain object to verify
-                     * @returns {string|null} `null` if valid, otherwise the reason why it is not
-                     */
-                    Policy.verify = function verify(message) {
-                        if (typeof message !== "object" || message === null)
-                            return "object expected";
-                        if (message.version != null && message.hasOwnProperty("version"))
-                            if (!$util.isInteger(message.version))
-                                return "version: integer expected";
-                        if (message.bindings != null && message.hasOwnProperty("bindings")) {
-                            if (!Array.isArray(message.bindings))
-                                return "bindings: array expected";
-                            for (var i = 0; i < message.bindings.length; ++i) {
-                                var error = $root.google.iam.v1.Binding.verify(message.bindings[i]);
-                                if (error)
-                                    return "bindings." + error;
-                            }
-                        }
-                        if (message.etag != null && message.hasOwnProperty("etag"))
-                            if (!(message.etag && typeof message.etag.length === "number" || $util.isString(message.etag)))
-                                return "etag: buffer expected";
-                        return null;
-                    };
-    
-                    /**
-                     * Creates a Policy message from a plain object. Also converts values to their respective internal types.
-                     * @function fromObject
-                     * @memberof google.iam.v1.Policy
-                     * @static
-                     * @param {Object.<string,*>} object Plain object
-                     * @returns {google.iam.v1.Policy} Policy
-                     */
-                    Policy.fromObject = function fromObject(object) {
-                        if (object instanceof $root.google.iam.v1.Policy)
-                            return object;
-                        var message = new $root.google.iam.v1.Policy();
-                        if (object.version != null)
-                            message.version = object.version | 0;
-                        if (object.bindings) {
-                            if (!Array.isArray(object.bindings))
-                                throw TypeError(".google.iam.v1.Policy.bindings: array expected");
-                            message.bindings = [];
-                            for (var i = 0; i < object.bindings.length; ++i) {
-                                if (typeof object.bindings[i] !== "object")
-                                    throw TypeError(".google.iam.v1.Policy.bindings: object expected");
-                                message.bindings[i] = $root.google.iam.v1.Binding.fromObject(object.bindings[i]);
-                            }
-                        }
-                        if (object.etag != null)
-                            if (typeof object.etag === "string")
-                                $util.base64.decode(object.etag, message.etag = $util.newBuffer($util.base64.length(object.etag)), 0);
-                            else if (object.etag.length)
-                                message.etag = object.etag;
-                        return message;
-                    };
-    
-                    /**
-                     * Creates a plain object from a Policy message. Also converts values to other types if specified.
-                     * @function toObject
-                     * @memberof google.iam.v1.Policy
-                     * @static
-                     * @param {google.iam.v1.Policy} message Policy
-                     * @param {$protobuf.IConversionOptions} [options] Conversion options
-                     * @returns {Object.<string,*>} Plain object
-                     */
-                    Policy.toObject = function toObject(message, options) {
-                        if (!options)
-                            options = {};
-                        var object = {};
-                        if (options.arrays || options.defaults)
-                            object.bindings = [];
-                        if (options.defaults) {
-                            object.version = 0;
-                            if (options.bytes === String)
-                                object.etag = "";
-                            else {
-                                object.etag = [];
-                                if (options.bytes !== Array)
-                                    object.etag = $util.newBuffer(object.etag);
-                            }
-                        }
-                        if (message.version != null && message.hasOwnProperty("version"))
-                            object.version = message.version;
-                        if (message.etag != null && message.hasOwnProperty("etag"))
-                            object.etag = options.bytes === String ? $util.base64.encode(message.etag, 0, message.etag.length) : options.bytes === Array ? Array.prototype.slice.call(message.etag) : message.etag;
-                        if (message.bindings && message.bindings.length) {
-                            object.bindings = [];
-                            for (var j = 0; j < message.bindings.length; ++j)
-                                object.bindings[j] = $root.google.iam.v1.Binding.toObject(message.bindings[j], options);
-                        }
-                        return object;
-                    };
-    
-                    /**
-                     * Converts this Policy to JSON.
-                     * @function toJSON
-                     * @memberof google.iam.v1.Policy
-                     * @instance
-                     * @returns {Object.<string,*>} JSON object
-                     */
-                    Policy.prototype.toJSON = function toJSON() {
-                        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-                    };
-    
-                    return Policy;
-                })();
-    
-                v1.Binding = (function() {
-    
-                    /**
-                     * Properties of a Binding.
-                     * @memberof google.iam.v1
-                     * @interface IBinding
-                     * @property {string|null} [role] Binding role
-                     * @property {Array.<string>|null} [members] Binding members
-                     * @property {google.type.IExpr|null} [condition] Binding condition
-                     */
-    
-                    /**
-                     * Constructs a new Binding.
-                     * @memberof google.iam.v1
-                     * @classdesc Represents a Binding.
-                     * @implements IBinding
-                     * @constructor
-                     * @param {google.iam.v1.IBinding=} [properties] Properties to set
-                     */
-                    function Binding(properties) {
-                        this.members = [];
-                        if (properties)
-                            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                                if (properties[keys[i]] != null)
-                                    this[keys[i]] = properties[keys[i]];
-                    }
-    
-                    /**
-                     * Binding role.
-                     * @member {string} role
-                     * @memberof google.iam.v1.Binding
-                     * @instance
-                     */
-                    Binding.prototype.role = "";
-    
-                    /**
-                     * Binding members.
-                     * @member {Array.<string>} members
-                     * @memberof google.iam.v1.Binding
-                     * @instance
-                     */
-                    Binding.prototype.members = $util.emptyArray;
-    
-                    /**
-                     * Binding condition.
-                     * @member {google.type.IExpr|null|undefined} condition
-                     * @memberof google.iam.v1.Binding
-                     * @instance
-                     */
-                    Binding.prototype.condition = null;
-    
-                    /**
-                     * Creates a new Binding instance using the specified properties.
-                     * @function create
-                     * @memberof google.iam.v1.Binding
-                     * @static
-                     * @param {google.iam.v1.IBinding=} [properties] Properties to set
-                     * @returns {google.iam.v1.Binding} Binding instance
-                     */
-                    Binding.create = function create(properties) {
-                        return new Binding(properties);
-                    };
-    
-                    /**
-                     * Encodes the specified Binding message. Does not implicitly {@link google.iam.v1.Binding.verify|verify} messages.
-                     * @function encode
-                     * @memberof google.iam.v1.Binding
-                     * @static
-                     * @param {google.iam.v1.IBinding} message Binding message or plain object to encode
-                     * @param {$protobuf.Writer} [writer] Writer to encode to
-                     * @returns {$protobuf.Writer} Writer
-                     */
-                    Binding.encode = function encode(message, writer) {
-                        if (!writer)
-                            writer = $Writer.create();
-                        if (message.role != null && message.hasOwnProperty("role"))
-                            writer.uint32(/* id 1, wireType 2 =*/10).string(message.role);
-                        if (message.members != null && message.members.length)
-                            for (var i = 0; i < message.members.length; ++i)
-                                writer.uint32(/* id 2, wireType 2 =*/18).string(message.members[i]);
-                        if (message.condition != null && message.hasOwnProperty("condition"))
-                            $root.google.type.Expr.encode(message.condition, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
-                        return writer;
-                    };
-    
-                    /**
-                     * Encodes the specified Binding message, length delimited. Does not implicitly {@link google.iam.v1.Binding.verify|verify} messages.
-                     * @function encodeDelimited
-                     * @memberof google.iam.v1.Binding
-                     * @static
-                     * @param {google.iam.v1.IBinding} message Binding message or plain object to encode
-                     * @param {$protobuf.Writer} [writer] Writer to encode to
-                     * @returns {$protobuf.Writer} Writer
-                     */
-                    Binding.encodeDelimited = function encodeDelimited(message, writer) {
-                        return this.encode(message, writer).ldelim();
-                    };
-    
-                    /**
-                     * Decodes a Binding message from the specified reader or buffer.
-                     * @function decode
-                     * @memberof google.iam.v1.Binding
-                     * @static
-                     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                     * @param {number} [length] Message length if known beforehand
-                     * @returns {google.iam.v1.Binding} Binding
-                     * @throws {Error} If the payload is not a reader or valid buffer
-                     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                     */
-                    Binding.decode = function decode(reader, length) {
-                        if (!(reader instanceof $Reader))
-                            reader = $Reader.create(reader);
-                        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.google.iam.v1.Binding();
-                        while (reader.pos < end) {
-                            var tag = reader.uint32();
-                            switch (tag >>> 3) {
-                            case 1:
-                                message.role = reader.string();
-                                break;
-                            case 2:
-                                if (!(message.members && message.members.length))
-                                    message.members = [];
-                                message.members.push(reader.string());
-                                break;
-                            case 3:
-                                message.condition = $root.google.type.Expr.decode(reader, reader.uint32());
-                                break;
-                            default:
-                                reader.skipType(tag & 7);
-                                break;
-                            }
-                        }
-                        return message;
-                    };
-    
-                    /**
-                     * Decodes a Binding message from the specified reader or buffer, length delimited.
-                     * @function decodeDelimited
-                     * @memberof google.iam.v1.Binding
-                     * @static
-                     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                     * @returns {google.iam.v1.Binding} Binding
-                     * @throws {Error} If the payload is not a reader or valid buffer
-                     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                     */
-                    Binding.decodeDelimited = function decodeDelimited(reader) {
-                        if (!(reader instanceof $Reader))
-                            reader = new $Reader(reader);
-                        return this.decode(reader, reader.uint32());
-                    };
-    
-                    /**
-                     * Verifies a Binding message.
-                     * @function verify
-                     * @memberof google.iam.v1.Binding
-                     * @static
-                     * @param {Object.<string,*>} message Plain object to verify
-                     * @returns {string|null} `null` if valid, otherwise the reason why it is not
-                     */
-                    Binding.verify = function verify(message) {
-                        if (typeof message !== "object" || message === null)
-                            return "object expected";
-                        if (message.role != null && message.hasOwnProperty("role"))
-                            if (!$util.isString(message.role))
-                                return "role: string expected";
-                        if (message.members != null && message.hasOwnProperty("members")) {
-                            if (!Array.isArray(message.members))
-                                return "members: array expected";
-                            for (var i = 0; i < message.members.length; ++i)
-                                if (!$util.isString(message.members[i]))
-                                    return "members: string[] expected";
-                        }
-                        if (message.condition != null && message.hasOwnProperty("condition")) {
-                            var error = $root.google.type.Expr.verify(message.condition);
-                            if (error)
-                                return "condition." + error;
-                        }
-                        return null;
-                    };
-    
-                    /**
-                     * Creates a Binding message from a plain object. Also converts values to their respective internal types.
-                     * @function fromObject
-                     * @memberof google.iam.v1.Binding
-                     * @static
-                     * @param {Object.<string,*>} object Plain object
-                     * @returns {google.iam.v1.Binding} Binding
-                     */
-                    Binding.fromObject = function fromObject(object) {
-                        if (object instanceof $root.google.iam.v1.Binding)
-                            return object;
-                        var message = new $root.google.iam.v1.Binding();
-                        if (object.role != null)
-                            message.role = String(object.role);
-                        if (object.members) {
-                            if (!Array.isArray(object.members))
-                                throw TypeError(".google.iam.v1.Binding.members: array expected");
-                            message.members = [];
-                            for (var i = 0; i < object.members.length; ++i)
-                                message.members[i] = String(object.members[i]);
-                        }
-                        if (object.condition != null) {
-                            if (typeof object.condition !== "object")
-                                throw TypeError(".google.iam.v1.Binding.condition: object expected");
-                            message.condition = $root.google.type.Expr.fromObject(object.condition);
-                        }
-                        return message;
-                    };
-    
-                    /**
-                     * Creates a plain object from a Binding message. Also converts values to other types if specified.
-                     * @function toObject
-                     * @memberof google.iam.v1.Binding
-                     * @static
-                     * @param {google.iam.v1.Binding} message Binding
-                     * @param {$protobuf.IConversionOptions} [options] Conversion options
-                     * @returns {Object.<string,*>} Plain object
-                     */
-                    Binding.toObject = function toObject(message, options) {
-                        if (!options)
-                            options = {};
-                        var object = {};
-                        if (options.arrays || options.defaults)
-                            object.members = [];
-                        if (options.defaults) {
-                            object.role = "";
-                            object.condition = null;
-                        }
-                        if (message.role != null && message.hasOwnProperty("role"))
-                            object.role = message.role;
-                        if (message.members && message.members.length) {
-                            object.members = [];
-                            for (var j = 0; j < message.members.length; ++j)
-                                object.members[j] = message.members[j];
-                        }
-                        if (message.condition != null && message.hasOwnProperty("condition"))
-                            object.condition = $root.google.type.Expr.toObject(message.condition, options);
-                        return object;
-                    };
-    
-                    /**
-                     * Converts this Binding to JSON.
-                     * @function toJSON
-                     * @memberof google.iam.v1.Binding
-                     * @instance
-                     * @returns {Object.<string,*>} JSON object
-                     */
-                    Binding.prototype.toJSON = function toJSON() {
-                        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-                    };
-    
-                    return Binding;
-                })();
-    
-                v1.PolicyDelta = (function() {
-    
-                    /**
-                     * Properties of a PolicyDelta.
-                     * @memberof google.iam.v1
-                     * @interface IPolicyDelta
-                     * @property {Array.<google.iam.v1.IBindingDelta>|null} [bindingDeltas] PolicyDelta bindingDeltas
-                     * @property {Array.<google.iam.v1.IAuditConfigDelta>|null} [auditConfigDeltas] PolicyDelta auditConfigDeltas
-                     */
-    
-                    /**
-                     * Constructs a new PolicyDelta.
-                     * @memberof google.iam.v1
-                     * @classdesc Represents a PolicyDelta.
-                     * @implements IPolicyDelta
-                     * @constructor
-                     * @param {google.iam.v1.IPolicyDelta=} [properties] Properties to set
-                     */
-                    function PolicyDelta(properties) {
-                        this.bindingDeltas = [];
-                        this.auditConfigDeltas = [];
-                        if (properties)
-                            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                                if (properties[keys[i]] != null)
-                                    this[keys[i]] = properties[keys[i]];
-                    }
-    
-                    /**
-                     * PolicyDelta bindingDeltas.
-                     * @member {Array.<google.iam.v1.IBindingDelta>} bindingDeltas
-                     * @memberof google.iam.v1.PolicyDelta
-                     * @instance
-                     */
-                    PolicyDelta.prototype.bindingDeltas = $util.emptyArray;
-    
-                    /**
-                     * PolicyDelta auditConfigDeltas.
-                     * @member {Array.<google.iam.v1.IAuditConfigDelta>} auditConfigDeltas
-                     * @memberof google.iam.v1.PolicyDelta
-                     * @instance
-                     */
-                    PolicyDelta.prototype.auditConfigDeltas = $util.emptyArray;
-    
-                    /**
-                     * Creates a new PolicyDelta instance using the specified properties.
-                     * @function create
-                     * @memberof google.iam.v1.PolicyDelta
-                     * @static
-                     * @param {google.iam.v1.IPolicyDelta=} [properties] Properties to set
-                     * @returns {google.iam.v1.PolicyDelta} PolicyDelta instance
-                     */
-                    PolicyDelta.create = function create(properties) {
-                        return new PolicyDelta(properties);
-                    };
-    
-                    /**
-                     * Encodes the specified PolicyDelta message. Does not implicitly {@link google.iam.v1.PolicyDelta.verify|verify} messages.
-                     * @function encode
-                     * @memberof google.iam.v1.PolicyDelta
-                     * @static
-                     * @param {google.iam.v1.IPolicyDelta} message PolicyDelta message or plain object to encode
-                     * @param {$protobuf.Writer} [writer] Writer to encode to
-                     * @returns {$protobuf.Writer} Writer
-                     */
-                    PolicyDelta.encode = function encode(message, writer) {
-                        if (!writer)
-                            writer = $Writer.create();
-                        if (message.bindingDeltas != null && message.bindingDeltas.length)
-                            for (var i = 0; i < message.bindingDeltas.length; ++i)
-                                $root.google.iam.v1.BindingDelta.encode(message.bindingDeltas[i], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
-                        if (message.auditConfigDeltas != null && message.auditConfigDeltas.length)
-                            for (var i = 0; i < message.auditConfigDeltas.length; ++i)
-                                $root.google.iam.v1.AuditConfigDelta.encode(message.auditConfigDeltas[i], writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
-                        return writer;
-                    };
-    
-                    /**
-                     * Encodes the specified PolicyDelta message, length delimited. Does not implicitly {@link google.iam.v1.PolicyDelta.verify|verify} messages.
-                     * @function encodeDelimited
-                     * @memberof google.iam.v1.PolicyDelta
-                     * @static
-                     * @param {google.iam.v1.IPolicyDelta} message PolicyDelta message or plain object to encode
-                     * @param {$protobuf.Writer} [writer] Writer to encode to
-                     * @returns {$protobuf.Writer} Writer
-                     */
-                    PolicyDelta.encodeDelimited = function encodeDelimited(message, writer) {
-                        return this.encode(message, writer).ldelim();
-                    };
-    
-                    /**
-                     * Decodes a PolicyDelta message from the specified reader or buffer.
-                     * @function decode
-                     * @memberof google.iam.v1.PolicyDelta
-                     * @static
-                     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                     * @param {number} [length] Message length if known beforehand
-                     * @returns {google.iam.v1.PolicyDelta} PolicyDelta
-                     * @throws {Error} If the payload is not a reader or valid buffer
-                     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                     */
-                    PolicyDelta.decode = function decode(reader, length) {
-                        if (!(reader instanceof $Reader))
-                            reader = $Reader.create(reader);
-                        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.google.iam.v1.PolicyDelta();
-                        while (reader.pos < end) {
-                            var tag = reader.uint32();
-                            switch (tag >>> 3) {
-                            case 1:
-                                if (!(message.bindingDeltas && message.bindingDeltas.length))
-                                    message.bindingDeltas = [];
-                                message.bindingDeltas.push($root.google.iam.v1.BindingDelta.decode(reader, reader.uint32()));
-                                break;
-                            case 2:
-                                if (!(message.auditConfigDeltas && message.auditConfigDeltas.length))
-                                    message.auditConfigDeltas = [];
-                                message.auditConfigDeltas.push($root.google.iam.v1.AuditConfigDelta.decode(reader, reader.uint32()));
-                                break;
-                            default:
-                                reader.skipType(tag & 7);
-                                break;
-                            }
-                        }
-                        return message;
-                    };
-    
-                    /**
-                     * Decodes a PolicyDelta message from the specified reader or buffer, length delimited.
-                     * @function decodeDelimited
-                     * @memberof google.iam.v1.PolicyDelta
-                     * @static
-                     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                     * @returns {google.iam.v1.PolicyDelta} PolicyDelta
-                     * @throws {Error} If the payload is not a reader or valid buffer
-                     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                     */
-                    PolicyDelta.decodeDelimited = function decodeDelimited(reader) {
-                        if (!(reader instanceof $Reader))
-                            reader = new $Reader(reader);
-                        return this.decode(reader, reader.uint32());
-                    };
-    
-                    /**
-                     * Verifies a PolicyDelta message.
-                     * @function verify
-                     * @memberof google.iam.v1.PolicyDelta
-                     * @static
-                     * @param {Object.<string,*>} message Plain object to verify
-                     * @returns {string|null} `null` if valid, otherwise the reason why it is not
-                     */
-                    PolicyDelta.verify = function verify(message) {
-                        if (typeof message !== "object" || message === null)
-                            return "object expected";
-                        if (message.bindingDeltas != null && message.hasOwnProperty("bindingDeltas")) {
-                            if (!Array.isArray(message.bindingDeltas))
-                                return "bindingDeltas: array expected";
-                            for (var i = 0; i < message.bindingDeltas.length; ++i) {
-                                var error = $root.google.iam.v1.BindingDelta.verify(message.bindingDeltas[i]);
-                                if (error)
-                                    return "bindingDeltas." + error;
-                            }
-                        }
-                        if (message.auditConfigDeltas != null && message.hasOwnProperty("auditConfigDeltas")) {
-                            if (!Array.isArray(message.auditConfigDeltas))
-                                return "auditConfigDeltas: array expected";
-                            for (var i = 0; i < message.auditConfigDeltas.length; ++i) {
-                                var error = $root.google.iam.v1.AuditConfigDelta.verify(message.auditConfigDeltas[i]);
-                                if (error)
-                                    return "auditConfigDeltas." + error;
-                            }
-                        }
-                        return null;
-                    };
-    
-                    /**
-                     * Creates a PolicyDelta message from a plain object. Also converts values to their respective internal types.
-                     * @function fromObject
-                     * @memberof google.iam.v1.PolicyDelta
-                     * @static
-                     * @param {Object.<string,*>} object Plain object
-                     * @returns {google.iam.v1.PolicyDelta} PolicyDelta
-                     */
-                    PolicyDelta.fromObject = function fromObject(object) {
-                        if (object instanceof $root.google.iam.v1.PolicyDelta)
-                            return object;
-                        var message = new $root.google.iam.v1.PolicyDelta();
-                        if (object.bindingDeltas) {
-                            if (!Array.isArray(object.bindingDeltas))
-                                throw TypeError(".google.iam.v1.PolicyDelta.bindingDeltas: array expected");
-                            message.bindingDeltas = [];
-                            for (var i = 0; i < object.bindingDeltas.length; ++i) {
-                                if (typeof object.bindingDeltas[i] !== "object")
-                                    throw TypeError(".google.iam.v1.PolicyDelta.bindingDeltas: object expected");
-                                message.bindingDeltas[i] = $root.google.iam.v1.BindingDelta.fromObject(object.bindingDeltas[i]);
-                            }
-                        }
-                        if (object.auditConfigDeltas) {
-                            if (!Array.isArray(object.auditConfigDeltas))
-                                throw TypeError(".google.iam.v1.PolicyDelta.auditConfigDeltas: array expected");
-                            message.auditConfigDeltas = [];
-                            for (var i = 0; i < object.auditConfigDeltas.length; ++i) {
-                                if (typeof object.auditConfigDeltas[i] !== "object")
-                                    throw TypeError(".google.iam.v1.PolicyDelta.auditConfigDeltas: object expected");
-                                message.auditConfigDeltas[i] = $root.google.iam.v1.AuditConfigDelta.fromObject(object.auditConfigDeltas[i]);
-                            }
-                        }
-                        return message;
-                    };
-    
-                    /**
-                     * Creates a plain object from a PolicyDelta message. Also converts values to other types if specified.
-                     * @function toObject
-                     * @memberof google.iam.v1.PolicyDelta
-                     * @static
-                     * @param {google.iam.v1.PolicyDelta} message PolicyDelta
-                     * @param {$protobuf.IConversionOptions} [options] Conversion options
-                     * @returns {Object.<string,*>} Plain object
-                     */
-                    PolicyDelta.toObject = function toObject(message, options) {
-                        if (!options)
-                            options = {};
-                        var object = {};
-                        if (options.arrays || options.defaults) {
-                            object.bindingDeltas = [];
-                            object.auditConfigDeltas = [];
-                        }
-                        if (message.bindingDeltas && message.bindingDeltas.length) {
-                            object.bindingDeltas = [];
-                            for (var j = 0; j < message.bindingDeltas.length; ++j)
-                                object.bindingDeltas[j] = $root.google.iam.v1.BindingDelta.toObject(message.bindingDeltas[j], options);
-                        }
-                        if (message.auditConfigDeltas && message.auditConfigDeltas.length) {
-                            object.auditConfigDeltas = [];
-                            for (var j = 0; j < message.auditConfigDeltas.length; ++j)
-                                object.auditConfigDeltas[j] = $root.google.iam.v1.AuditConfigDelta.toObject(message.auditConfigDeltas[j], options);
-                        }
-                        return object;
-                    };
-    
-                    /**
-                     * Converts this PolicyDelta to JSON.
-                     * @function toJSON
-                     * @memberof google.iam.v1.PolicyDelta
-                     * @instance
-                     * @returns {Object.<string,*>} JSON object
-                     */
-                    PolicyDelta.prototype.toJSON = function toJSON() {
-                        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-                    };
-    
-                    return PolicyDelta;
-                })();
-    
-                v1.BindingDelta = (function() {
-    
-                    /**
-                     * Properties of a BindingDelta.
-                     * @memberof google.iam.v1
-                     * @interface IBindingDelta
-                     * @property {google.iam.v1.BindingDelta.Action|null} [action] BindingDelta action
-                     * @property {string|null} [role] BindingDelta role
-                     * @property {string|null} [member] BindingDelta member
-                     * @property {google.type.IExpr|null} [condition] BindingDelta condition
-                     */
-    
-                    /**
-                     * Constructs a new BindingDelta.
-                     * @memberof google.iam.v1
-                     * @classdesc Represents a BindingDelta.
-                     * @implements IBindingDelta
-                     * @constructor
-                     * @param {google.iam.v1.IBindingDelta=} [properties] Properties to set
-                     */
-                    function BindingDelta(properties) {
-                        if (properties)
-                            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                                if (properties[keys[i]] != null)
-                                    this[keys[i]] = properties[keys[i]];
-                    }
-    
-                    /**
-                     * BindingDelta action.
-                     * @member {google.iam.v1.BindingDelta.Action} action
-                     * @memberof google.iam.v1.BindingDelta
-                     * @instance
-                     */
-                    BindingDelta.prototype.action = 0;
-    
-                    /**
-                     * BindingDelta role.
-                     * @member {string} role
-                     * @memberof google.iam.v1.BindingDelta
-                     * @instance
-                     */
-                    BindingDelta.prototype.role = "";
-    
-                    /**
-                     * BindingDelta member.
-                     * @member {string} member
-                     * @memberof google.iam.v1.BindingDelta
-                     * @instance
-                     */
-                    BindingDelta.prototype.member = "";
-    
-                    /**
-                     * BindingDelta condition.
-                     * @member {google.type.IExpr|null|undefined} condition
-                     * @memberof google.iam.v1.BindingDelta
-                     * @instance
-                     */
-                    BindingDelta.prototype.condition = null;
-    
-                    /**
-                     * Creates a new BindingDelta instance using the specified properties.
-                     * @function create
-                     * @memberof google.iam.v1.BindingDelta
-                     * @static
-                     * @param {google.iam.v1.IBindingDelta=} [properties] Properties to set
-                     * @returns {google.iam.v1.BindingDelta} BindingDelta instance
-                     */
-                    BindingDelta.create = function create(properties) {
-                        return new BindingDelta(properties);
-                    };
-    
-                    /**
-                     * Encodes the specified BindingDelta message. Does not implicitly {@link google.iam.v1.BindingDelta.verify|verify} messages.
-                     * @function encode
-                     * @memberof google.iam.v1.BindingDelta
-                     * @static
-                     * @param {google.iam.v1.IBindingDelta} message BindingDelta message or plain object to encode
-                     * @param {$protobuf.Writer} [writer] Writer to encode to
-                     * @returns {$protobuf.Writer} Writer
-                     */
-                    BindingDelta.encode = function encode(message, writer) {
-                        if (!writer)
-                            writer = $Writer.create();
-                        if (message.action != null && message.hasOwnProperty("action"))
-                            writer.uint32(/* id 1, wireType 0 =*/8).int32(message.action);
-                        if (message.role != null && message.hasOwnProperty("role"))
-                            writer.uint32(/* id 2, wireType 2 =*/18).string(message.role);
-                        if (message.member != null && message.hasOwnProperty("member"))
-                            writer.uint32(/* id 3, wireType 2 =*/26).string(message.member);
-                        if (message.condition != null && message.hasOwnProperty("condition"))
-                            $root.google.type.Expr.encode(message.condition, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
-                        return writer;
-                    };
-    
-                    /**
-                     * Encodes the specified BindingDelta message, length delimited. Does not implicitly {@link google.iam.v1.BindingDelta.verify|verify} messages.
-                     * @function encodeDelimited
-                     * @memberof google.iam.v1.BindingDelta
-                     * @static
-                     * @param {google.iam.v1.IBindingDelta} message BindingDelta message or plain object to encode
-                     * @param {$protobuf.Writer} [writer] Writer to encode to
-                     * @returns {$protobuf.Writer} Writer
-                     */
-                    BindingDelta.encodeDelimited = function encodeDelimited(message, writer) {
-                        return this.encode(message, writer).ldelim();
-                    };
-    
-                    /**
-                     * Decodes a BindingDelta message from the specified reader or buffer.
-                     * @function decode
-                     * @memberof google.iam.v1.BindingDelta
-                     * @static
-                     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                     * @param {number} [length] Message length if known beforehand
-                     * @returns {google.iam.v1.BindingDelta} BindingDelta
-                     * @throws {Error} If the payload is not a reader or valid buffer
-                     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                     */
-                    BindingDelta.decode = function decode(reader, length) {
-                        if (!(reader instanceof $Reader))
-                            reader = $Reader.create(reader);
-                        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.google.iam.v1.BindingDelta();
-                        while (reader.pos < end) {
-                            var tag = reader.uint32();
-                            switch (tag >>> 3) {
-                            case 1:
-                                message.action = reader.int32();
-                                break;
-                            case 2:
-                                message.role = reader.string();
-                                break;
-                            case 3:
-                                message.member = reader.string();
-                                break;
-                            case 4:
-                                message.condition = $root.google.type.Expr.decode(reader, reader.uint32());
-                                break;
-                            default:
-                                reader.skipType(tag & 7);
-                                break;
-                            }
-                        }
-                        return message;
-                    };
-    
-                    /**
-                     * Decodes a BindingDelta message from the specified reader or buffer, length delimited.
-                     * @function decodeDelimited
-                     * @memberof google.iam.v1.BindingDelta
-                     * @static
-                     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                     * @returns {google.iam.v1.BindingDelta} BindingDelta
-                     * @throws {Error} If the payload is not a reader or valid buffer
-                     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                     */
-                    BindingDelta.decodeDelimited = function decodeDelimited(reader) {
-                        if (!(reader instanceof $Reader))
-                            reader = new $Reader(reader);
-                        return this.decode(reader, reader.uint32());
-                    };
-    
-                    /**
-                     * Verifies a BindingDelta message.
-                     * @function verify
-                     * @memberof google.iam.v1.BindingDelta
-                     * @static
-                     * @param {Object.<string,*>} message Plain object to verify
-                     * @returns {string|null} `null` if valid, otherwise the reason why it is not
-                     */
-                    BindingDelta.verify = function verify(message) {
-                        if (typeof message !== "object" || message === null)
-                            return "object expected";
-                        if (message.action != null && message.hasOwnProperty("action"))
-                            switch (message.action) {
-                            default:
-                                return "action: enum value expected";
-                            case 0:
-                            case 1:
-                            case 2:
-                                break;
-                            }
-                        if (message.role != null && message.hasOwnProperty("role"))
-                            if (!$util.isString(message.role))
-                                return "role: string expected";
-                        if (message.member != null && message.hasOwnProperty("member"))
-                            if (!$util.isString(message.member))
-                                return "member: string expected";
-                        if (message.condition != null && message.hasOwnProperty("condition")) {
-                            var error = $root.google.type.Expr.verify(message.condition);
-                            if (error)
-                                return "condition." + error;
-                        }
-                        return null;
-                    };
-    
-                    /**
-                     * Creates a BindingDelta message from a plain object. Also converts values to their respective internal types.
-                     * @function fromObject
-                     * @memberof google.iam.v1.BindingDelta
-                     * @static
-                     * @param {Object.<string,*>} object Plain object
-                     * @returns {google.iam.v1.BindingDelta} BindingDelta
-                     */
-                    BindingDelta.fromObject = function fromObject(object) {
-                        if (object instanceof $root.google.iam.v1.BindingDelta)
-                            return object;
-                        var message = new $root.google.iam.v1.BindingDelta();
-                        switch (object.action) {
-                        case "ACTION_UNSPECIFIED":
-                        case 0:
-                            message.action = 0;
-                            break;
-                        case "ADD":
-                        case 1:
-                            message.action = 1;
-                            break;
-                        case "REMOVE":
-                        case 2:
-                            message.action = 2;
-                            break;
-                        }
-                        if (object.role != null)
-                            message.role = String(object.role);
-                        if (object.member != null)
-                            message.member = String(object.member);
-                        if (object.condition != null) {
-                            if (typeof object.condition !== "object")
-                                throw TypeError(".google.iam.v1.BindingDelta.condition: object expected");
-                            message.condition = $root.google.type.Expr.fromObject(object.condition);
-                        }
-                        return message;
-                    };
-    
-                    /**
-                     * Creates a plain object from a BindingDelta message. Also converts values to other types if specified.
-                     * @function toObject
-                     * @memberof google.iam.v1.BindingDelta
-                     * @static
-                     * @param {google.iam.v1.BindingDelta} message BindingDelta
-                     * @param {$protobuf.IConversionOptions} [options] Conversion options
-                     * @returns {Object.<string,*>} Plain object
-                     */
-                    BindingDelta.toObject = function toObject(message, options) {
-                        if (!options)
-                            options = {};
-                        var object = {};
-                        if (options.defaults) {
-                            object.action = options.enums === String ? "ACTION_UNSPECIFIED" : 0;
-                            object.role = "";
-                            object.member = "";
-                            object.condition = null;
-                        }
-                        if (message.action != null && message.hasOwnProperty("action"))
-                            object.action = options.enums === String ? $root.google.iam.v1.BindingDelta.Action[message.action] : message.action;
-                        if (message.role != null && message.hasOwnProperty("role"))
-                            object.role = message.role;
-                        if (message.member != null && message.hasOwnProperty("member"))
-                            object.member = message.member;
-                        if (message.condition != null && message.hasOwnProperty("condition"))
-                            object.condition = $root.google.type.Expr.toObject(message.condition, options);
-                        return object;
-                    };
-    
-                    /**
-                     * Converts this BindingDelta to JSON.
-                     * @function toJSON
-                     * @memberof google.iam.v1.BindingDelta
-                     * @instance
-                     * @returns {Object.<string,*>} JSON object
-                     */
-                    BindingDelta.prototype.toJSON = function toJSON() {
-                        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-                    };
-    
-                    /**
-                     * Action enum.
-                     * @name google.iam.v1.BindingDelta.Action
-                     * @enum {string}
-                     * @property {number} ACTION_UNSPECIFIED=0 ACTION_UNSPECIFIED value
-                     * @property {number} ADD=1 ADD value
-                     * @property {number} REMOVE=2 REMOVE value
-                     */
-                    BindingDelta.Action = (function() {
-                        var valuesById = {}, values = Object.create(valuesById);
-                        values[valuesById[0] = "ACTION_UNSPECIFIED"] = 0;
-                        values[valuesById[1] = "ADD"] = 1;
-                        values[valuesById[2] = "REMOVE"] = 2;
-                        return values;
-                    })();
-    
-                    return BindingDelta;
-                })();
-    
-                v1.AuditConfigDelta = (function() {
-    
-                    /**
-                     * Properties of an AuditConfigDelta.
-                     * @memberof google.iam.v1
-                     * @interface IAuditConfigDelta
-                     * @property {google.iam.v1.AuditConfigDelta.Action|null} [action] AuditConfigDelta action
-                     * @property {string|null} [service] AuditConfigDelta service
-                     * @property {string|null} [exemptedMember] AuditConfigDelta exemptedMember
-                     * @property {string|null} [logType] AuditConfigDelta logType
-                     */
-    
-                    /**
-                     * Constructs a new AuditConfigDelta.
-                     * @memberof google.iam.v1
-                     * @classdesc Represents an AuditConfigDelta.
-                     * @implements IAuditConfigDelta
-                     * @constructor
-                     * @param {google.iam.v1.IAuditConfigDelta=} [properties] Properties to set
-                     */
-                    function AuditConfigDelta(properties) {
-                        if (properties)
-                            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                                if (properties[keys[i]] != null)
-                                    this[keys[i]] = properties[keys[i]];
-                    }
-    
-                    /**
-                     * AuditConfigDelta action.
-                     * @member {google.iam.v1.AuditConfigDelta.Action} action
-                     * @memberof google.iam.v1.AuditConfigDelta
-                     * @instance
-                     */
-                    AuditConfigDelta.prototype.action = 0;
-    
-                    /**
-                     * AuditConfigDelta service.
-                     * @member {string} service
-                     * @memberof google.iam.v1.AuditConfigDelta
-                     * @instance
-                     */
-                    AuditConfigDelta.prototype.service = "";
-    
-                    /**
-                     * AuditConfigDelta exemptedMember.
-                     * @member {string} exemptedMember
-                     * @memberof google.iam.v1.AuditConfigDelta
-                     * @instance
-                     */
-                    AuditConfigDelta.prototype.exemptedMember = "";
-    
-                    /**
-                     * AuditConfigDelta logType.
-                     * @member {string} logType
-                     * @memberof google.iam.v1.AuditConfigDelta
-                     * @instance
-                     */
-                    AuditConfigDelta.prototype.logType = "";
-    
-                    /**
-                     * Creates a new AuditConfigDelta instance using the specified properties.
-                     * @function create
-                     * @memberof google.iam.v1.AuditConfigDelta
-                     * @static
-                     * @param {google.iam.v1.IAuditConfigDelta=} [properties] Properties to set
-                     * @returns {google.iam.v1.AuditConfigDelta} AuditConfigDelta instance
-                     */
-                    AuditConfigDelta.create = function create(properties) {
-                        return new AuditConfigDelta(properties);
-                    };
-    
-                    /**
-                     * Encodes the specified AuditConfigDelta message. Does not implicitly {@link google.iam.v1.AuditConfigDelta.verify|verify} messages.
-                     * @function encode
-                     * @memberof google.iam.v1.AuditConfigDelta
-                     * @static
-                     * @param {google.iam.v1.IAuditConfigDelta} message AuditConfigDelta message or plain object to encode
-                     * @param {$protobuf.Writer} [writer] Writer to encode to
-                     * @returns {$protobuf.Writer} Writer
-                     */
-                    AuditConfigDelta.encode = function encode(message, writer) {
-                        if (!writer)
-                            writer = $Writer.create();
-                        if (message.action != null && message.hasOwnProperty("action"))
-                            writer.uint32(/* id 1, wireType 0 =*/8).int32(message.action);
-                        if (message.service != null && message.hasOwnProperty("service"))
-                            writer.uint32(/* id 2, wireType 2 =*/18).string(message.service);
-                        if (message.exemptedMember != null && message.hasOwnProperty("exemptedMember"))
-                            writer.uint32(/* id 3, wireType 2 =*/26).string(message.exemptedMember);
-                        if (message.logType != null && message.hasOwnProperty("logType"))
-                            writer.uint32(/* id 4, wireType 2 =*/34).string(message.logType);
-                        return writer;
-                    };
-    
-                    /**
-                     * Encodes the specified AuditConfigDelta message, length delimited. Does not implicitly {@link google.iam.v1.AuditConfigDelta.verify|verify} messages.
-                     * @function encodeDelimited
-                     * @memberof google.iam.v1.AuditConfigDelta
-                     * @static
-                     * @param {google.iam.v1.IAuditConfigDelta} message AuditConfigDelta message or plain object to encode
-                     * @param {$protobuf.Writer} [writer] Writer to encode to
-                     * @returns {$protobuf.Writer} Writer
-                     */
-                    AuditConfigDelta.encodeDelimited = function encodeDelimited(message, writer) {
-                        return this.encode(message, writer).ldelim();
-                    };
-    
-                    /**
-                     * Decodes an AuditConfigDelta message from the specified reader or buffer.
-                     * @function decode
-                     * @memberof google.iam.v1.AuditConfigDelta
-                     * @static
-                     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                     * @param {number} [length] Message length if known beforehand
-                     * @returns {google.iam.v1.AuditConfigDelta} AuditConfigDelta
-                     * @throws {Error} If the payload is not a reader or valid buffer
-                     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                     */
-                    AuditConfigDelta.decode = function decode(reader, length) {
-                        if (!(reader instanceof $Reader))
-                            reader = $Reader.create(reader);
-                        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.google.iam.v1.AuditConfigDelta();
-                        while (reader.pos < end) {
-                            var tag = reader.uint32();
-                            switch (tag >>> 3) {
-                            case 1:
-                                message.action = reader.int32();
-                                break;
-                            case 2:
-                                message.service = reader.string();
-                                break;
-                            case 3:
-                                message.exemptedMember = reader.string();
-                                break;
-                            case 4:
-                                message.logType = reader.string();
-                                break;
-                            default:
-                                reader.skipType(tag & 7);
-                                break;
-                            }
-                        }
-                        return message;
-                    };
-    
-                    /**
-                     * Decodes an AuditConfigDelta message from the specified reader or buffer, length delimited.
-                     * @function decodeDelimited
-                     * @memberof google.iam.v1.AuditConfigDelta
-                     * @static
-                     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                     * @returns {google.iam.v1.AuditConfigDelta} AuditConfigDelta
-                     * @throws {Error} If the payload is not a reader or valid buffer
-                     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                     */
-                    AuditConfigDelta.decodeDelimited = function decodeDelimited(reader) {
-                        if (!(reader instanceof $Reader))
-                            reader = new $Reader(reader);
-                        return this.decode(reader, reader.uint32());
-                    };
-    
-                    /**
-                     * Verifies an AuditConfigDelta message.
-                     * @function verify
-                     * @memberof google.iam.v1.AuditConfigDelta
-                     * @static
-                     * @param {Object.<string,*>} message Plain object to verify
-                     * @returns {string|null} `null` if valid, otherwise the reason why it is not
-                     */
-                    AuditConfigDelta.verify = function verify(message) {
-                        if (typeof message !== "object" || message === null)
-                            return "object expected";
-                        if (message.action != null && message.hasOwnProperty("action"))
-                            switch (message.action) {
-                            default:
-                                return "action: enum value expected";
-                            case 0:
-                            case 1:
-                            case 2:
-                                break;
-                            }
-                        if (message.service != null && message.hasOwnProperty("service"))
-                            if (!$util.isString(message.service))
-                                return "service: string expected";
-                        if (message.exemptedMember != null && message.hasOwnProperty("exemptedMember"))
-                            if (!$util.isString(message.exemptedMember))
-                                return "exemptedMember: string expected";
-                        if (message.logType != null && message.hasOwnProperty("logType"))
-                            if (!$util.isString(message.logType))
-                                return "logType: string expected";
-                        return null;
-                    };
-    
-                    /**
-                     * Creates an AuditConfigDelta message from a plain object. Also converts values to their respective internal types.
-                     * @function fromObject
-                     * @memberof google.iam.v1.AuditConfigDelta
-                     * @static
-                     * @param {Object.<string,*>} object Plain object
-                     * @returns {google.iam.v1.AuditConfigDelta} AuditConfigDelta
-                     */
-                    AuditConfigDelta.fromObject = function fromObject(object) {
-                        if (object instanceof $root.google.iam.v1.AuditConfigDelta)
-                            return object;
-                        var message = new $root.google.iam.v1.AuditConfigDelta();
-                        switch (object.action) {
-                        case "ACTION_UNSPECIFIED":
-                        case 0:
-                            message.action = 0;
-                            break;
-                        case "ADD":
-                        case 1:
-                            message.action = 1;
-                            break;
-                        case "REMOVE":
-                        case 2:
-                            message.action = 2;
-                            break;
-                        }
-                        if (object.service != null)
-                            message.service = String(object.service);
-                        if (object.exemptedMember != null)
-                            message.exemptedMember = String(object.exemptedMember);
-                        if (object.logType != null)
-                            message.logType = String(object.logType);
-                        return message;
-                    };
-    
-                    /**
-                     * Creates a plain object from an AuditConfigDelta message. Also converts values to other types if specified.
-                     * @function toObject
-                     * @memberof google.iam.v1.AuditConfigDelta
-                     * @static
-                     * @param {google.iam.v1.AuditConfigDelta} message AuditConfigDelta
-                     * @param {$protobuf.IConversionOptions} [options] Conversion options
-                     * @returns {Object.<string,*>} Plain object
-                     */
-                    AuditConfigDelta.toObject = function toObject(message, options) {
-                        if (!options)
-                            options = {};
-                        var object = {};
-                        if (options.defaults) {
-                            object.action = options.enums === String ? "ACTION_UNSPECIFIED" : 0;
-                            object.service = "";
-                            object.exemptedMember = "";
-                            object.logType = "";
-                        }
-                        if (message.action != null && message.hasOwnProperty("action"))
-                            object.action = options.enums === String ? $root.google.iam.v1.AuditConfigDelta.Action[message.action] : message.action;
-                        if (message.service != null && message.hasOwnProperty("service"))
-                            object.service = message.service;
-                        if (message.exemptedMember != null && message.hasOwnProperty("exemptedMember"))
-                            object.exemptedMember = message.exemptedMember;
-                        if (message.logType != null && message.hasOwnProperty("logType"))
-                            object.logType = message.logType;
-                        return object;
-                    };
-    
-                    /**
-                     * Converts this AuditConfigDelta to JSON.
-                     * @function toJSON
-                     * @memberof google.iam.v1.AuditConfigDelta
-                     * @instance
-                     * @returns {Object.<string,*>} JSON object
-                     */
-                    AuditConfigDelta.prototype.toJSON = function toJSON() {
-                        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-                    };
-    
-                    /**
-                     * Action enum.
-                     * @name google.iam.v1.AuditConfigDelta.Action
-                     * @enum {string}
-                     * @property {number} ACTION_UNSPECIFIED=0 ACTION_UNSPECIFIED value
-                     * @property {number} ADD=1 ADD value
-                     * @property {number} REMOVE=2 REMOVE value
-                     */
-                    AuditConfigDelta.Action = (function() {
-                        var valuesById = {}, values = Object.create(valuesById);
-                        values[valuesById[0] = "ACTION_UNSPECIFIED"] = 0;
-                        values[valuesById[1] = "ADD"] = 1;
-                        values[valuesById[2] = "REMOVE"] = 2;
-                        return values;
-                    })();
-    
-                    return AuditConfigDelta;
-                })();
-    
-                return v1;
-            })();
-    
-            return iam;
-        })();
-    
-        google.type = (function() {
-    
-            /**
-             * Namespace type.
-             * @memberof google
-             * @namespace
-             */
-            var type = {};
-    
-            type.Expr = (function() {
-    
-                /**
-                 * Properties of an Expr.
-                 * @memberof google.type
-                 * @interface IExpr
-                 * @property {string|null} [expression] Expr expression
-                 * @property {string|null} [title] Expr title
-                 * @property {string|null} [description] Expr description
-                 * @property {string|null} [location] Expr location
-                 */
-    
-                /**
-                 * Constructs a new Expr.
-                 * @memberof google.type
-                 * @classdesc Represents an Expr.
-                 * @implements IExpr
-                 * @constructor
-                 * @param {google.type.IExpr=} [properties] Properties to set
-                 */
-                function Expr(properties) {
-                    if (properties)
-                        for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
-                                this[keys[i]] = properties[keys[i]];
-                }
-    
-                /**
-                 * Expr expression.
-                 * @member {string} expression
-                 * @memberof google.type.Expr
-                 * @instance
-                 */
-                Expr.prototype.expression = "";
-    
-                /**
-                 * Expr title.
-                 * @member {string} title
-                 * @memberof google.type.Expr
-                 * @instance
-                 */
-                Expr.prototype.title = "";
-    
-                /**
-                 * Expr description.
-                 * @member {string} description
-                 * @memberof google.type.Expr
-                 * @instance
-                 */
-                Expr.prototype.description = "";
-    
-                /**
-                 * Expr location.
-                 * @member {string} location
-                 * @memberof google.type.Expr
-                 * @instance
-                 */
-                Expr.prototype.location = "";
-    
-                /**
-                 * Creates a new Expr instance using the specified properties.
-                 * @function create
-                 * @memberof google.type.Expr
-                 * @static
-                 * @param {google.type.IExpr=} [properties] Properties to set
-                 * @returns {google.type.Expr} Expr instance
-                 */
-                Expr.create = function create(properties) {
-                    return new Expr(properties);
-                };
-    
-                /**
-                 * Encodes the specified Expr message. Does not implicitly {@link google.type.Expr.verify|verify} messages.
-                 * @function encode
-                 * @memberof google.type.Expr
-                 * @static
-                 * @param {google.type.IExpr} message Expr message or plain object to encode
-                 * @param {$protobuf.Writer} [writer] Writer to encode to
-                 * @returns {$protobuf.Writer} Writer
-                 */
-                Expr.encode = function encode(message, writer) {
-                    if (!writer)
-                        writer = $Writer.create();
-                    if (message.expression != null && message.hasOwnProperty("expression"))
-                        writer.uint32(/* id 1, wireType 2 =*/10).string(message.expression);
-                    if (message.title != null && message.hasOwnProperty("title"))
-                        writer.uint32(/* id 2, wireType 2 =*/18).string(message.title);
-                    if (message.description != null && message.hasOwnProperty("description"))
-                        writer.uint32(/* id 3, wireType 2 =*/26).string(message.description);
-                    if (message.location != null && message.hasOwnProperty("location"))
-                        writer.uint32(/* id 4, wireType 2 =*/34).string(message.location);
-                    return writer;
-                };
-    
-                /**
-                 * Encodes the specified Expr message, length delimited. Does not implicitly {@link google.type.Expr.verify|verify} messages.
-                 * @function encodeDelimited
-                 * @memberof google.type.Expr
-                 * @static
-                 * @param {google.type.IExpr} message Expr message or plain object to encode
-                 * @param {$protobuf.Writer} [writer] Writer to encode to
-                 * @returns {$protobuf.Writer} Writer
-                 */
-                Expr.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
-                };
-    
-                /**
-                 * Decodes an Expr message from the specified reader or buffer.
-                 * @function decode
-                 * @memberof google.type.Expr
-                 * @static
-                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                 * @param {number} [length] Message length if known beforehand
-                 * @returns {google.type.Expr} Expr
-                 * @throws {Error} If the payload is not a reader or valid buffer
-                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                 */
-                Expr.decode = function decode(reader, length) {
-                    if (!(reader instanceof $Reader))
-                        reader = $Reader.create(reader);
-                    var end = length === undefined ? reader.len : reader.pos + length, message = new $root.google.type.Expr();
-                    while (reader.pos < end) {
-                        var tag = reader.uint32();
-                        switch (tag >>> 3) {
-                        case 1:
-                            message.expression = reader.string();
-                            break;
-                        case 2:
-                            message.title = reader.string();
-                            break;
-                        case 3:
-                            message.description = reader.string();
-                            break;
-                        case 4:
-                            message.location = reader.string();
-                            break;
-                        default:
-                            reader.skipType(tag & 7);
-                            break;
-                        }
-                    }
-                    return message;
-                };
-    
-                /**
-                 * Decodes an Expr message from the specified reader or buffer, length delimited.
-                 * @function decodeDelimited
-                 * @memberof google.type.Expr
-                 * @static
-                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                 * @returns {google.type.Expr} Expr
-                 * @throws {Error} If the payload is not a reader or valid buffer
-                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                 */
-                Expr.decodeDelimited = function decodeDelimited(reader) {
-                    if (!(reader instanceof $Reader))
-                        reader = new $Reader(reader);
-                    return this.decode(reader, reader.uint32());
-                };
-    
-                /**
-                 * Verifies an Expr message.
-                 * @function verify
-                 * @memberof google.type.Expr
-                 * @static
-                 * @param {Object.<string,*>} message Plain object to verify
-                 * @returns {string|null} `null` if valid, otherwise the reason why it is not
-                 */
-                Expr.verify = function verify(message) {
-                    if (typeof message !== "object" || message === null)
-                        return "object expected";
-                    if (message.expression != null && message.hasOwnProperty("expression"))
-                        if (!$util.isString(message.expression))
-                            return "expression: string expected";
-                    if (message.title != null && message.hasOwnProperty("title"))
-                        if (!$util.isString(message.title))
-                            return "title: string expected";
-                    if (message.description != null && message.hasOwnProperty("description"))
-                        if (!$util.isString(message.description))
-                            return "description: string expected";
-                    if (message.location != null && message.hasOwnProperty("location"))
-                        if (!$util.isString(message.location))
-                            return "location: string expected";
-                    return null;
-                };
-    
-                /**
-                 * Creates an Expr message from a plain object. Also converts values to their respective internal types.
-                 * @function fromObject
-                 * @memberof google.type.Expr
-                 * @static
-                 * @param {Object.<string,*>} object Plain object
-                 * @returns {google.type.Expr} Expr
-                 */
-                Expr.fromObject = function fromObject(object) {
-                    if (object instanceof $root.google.type.Expr)
-                        return object;
-                    var message = new $root.google.type.Expr();
-                    if (object.expression != null)
-                        message.expression = String(object.expression);
-                    if (object.title != null)
-                        message.title = String(object.title);
-                    if (object.description != null)
-                        message.description = String(object.description);
-                    if (object.location != null)
-                        message.location = String(object.location);
-                    return message;
-                };
-    
-                /**
-                 * Creates a plain object from an Expr message. Also converts values to other types if specified.
-                 * @function toObject
-                 * @memberof google.type.Expr
-                 * @static
-                 * @param {google.type.Expr} message Expr
-                 * @param {$protobuf.IConversionOptions} [options] Conversion options
-                 * @returns {Object.<string,*>} Plain object
-                 */
-                Expr.toObject = function toObject(message, options) {
-                    if (!options)
-                        options = {};
-                    var object = {};
-                    if (options.defaults) {
-                        object.expression = "";
-                        object.title = "";
-                        object.description = "";
-                        object.location = "";
-                    }
-                    if (message.expression != null && message.hasOwnProperty("expression"))
-                        object.expression = message.expression;
-                    if (message.title != null && message.hasOwnProperty("title"))
-                        object.title = message.title;
-                    if (message.description != null && message.hasOwnProperty("description"))
-                        object.description = message.description;
-                    if (message.location != null && message.hasOwnProperty("location"))
-                        object.location = message.location;
-                    return object;
-                };
-    
-                /**
-                 * Converts this Expr to JSON.
-                 * @function toJSON
-                 * @memberof google.type.Expr
-                 * @instance
-                 * @returns {Object.<string,*>} JSON object
-                 */
-                Expr.prototype.toJSON = function toJSON() {
-                    return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-                };
-    
-                return Expr;
-            })();
-    
-            return type;
         })();
     
         return google;

@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-import {promisifyAll} from '@google-cloud/promisify';
+import {promisify, promisifyAll} from '@google-cloud/promisify';
 import * as extend from 'extend';
 import {CallOptions} from 'google-gax';
+import {Span} from '@opentelemetry/api';
 
-import {MessageBatch, BatchPublishOptions} from './message-batch';
+import {BatchPublishOptions} from './message-batch';
 import {Queue, OrderedQueue} from './message-queues';
 import {Topic} from '../topic';
-import {RequestCallback} from '../pubsub';
-import {google} from '../../proto/pubsub';
+import {RequestCallback, EmptyCallback} from '../pubsub';
+import {google} from '../../protos/protos';
 import {defaultOptions} from '../default-options';
+import {OpenTelemetryTracer} from '../opentelemetry-tracing';
 
 export type PubsubMessage = google.pubsub.v1.IPubsubMessage;
 
@@ -37,7 +39,20 @@ export interface PublishOptions {
   batching?: BatchPublishOptions;
   gaxOpts?: CallOptions;
   messageOrdering?: boolean;
+  enableOpenTelemetryTracing?: boolean;
 }
+
+/**
+ * @typedef PublishOptions
+ * @property {BatchPublishOptions} [batching] The maximum number of bytes to
+ *     buffer before sending a payload.
+ * @property {object} [gaxOpts] Request configuration options, outlined
+ *     {@link https://googleapis.github.io/gax-nodejs/interfaces/CallOptions.html|here.}
+ * @property {boolean} [messageOrdering] If true, messages published with the
+ * same order key in Message will be delivered to the subscribers in the order in which they
+ *  are received by the Pub/Sub system. Otherwise, they may be delivered in
+ * any order.
+ */
 
 export const BATCH_LIMITS: BatchPublishOptions = {
   maxBytes: Math.pow(1024, 2) * 9,
@@ -56,21 +71,48 @@ export const BATCH_LIMITS: BatchPublishOptions = {
  * @param {PublishOptions} [options] Configuration object.
  */
 export class Publisher {
-  // tslint:disable-next-line variable-name
-  Promise?: PromiseConstructor;
   topic: Topic;
   settings!: PublishOptions;
   queue: Queue;
   orderedQueues: Map<string, OrderedQueue>;
+  tracing: OpenTelemetryTracer | undefined;
   constructor(topic: Topic, options?: PublishOptions) {
-    if (topic.Promise) {
-      this.Promise = topic.Promise;
-    }
-
     this.setOptions(options);
     this.topic = topic;
     this.queue = new Queue(this);
     this.orderedQueues = new Map();
+    this.tracing =
+      this.settings && this.settings.enableOpenTelemetryTracing
+        ? new OpenTelemetryTracer()
+        : undefined;
+  }
+
+  flush(): Promise<void>;
+  flush(callback: EmptyCallback): void;
+  /**
+   * Immediately sends all remaining queued data. This is mostly useful
+   * if you are planning to call close() on the PubSub object that holds
+   * the server connections.
+   *
+   * @private
+   *
+   * @param {EmptyCallback} [callback] Callback function.
+   * @returns {Promise<EmptyResponse>}
+   */
+  flush(callback?: EmptyCallback): Promise<void> | void {
+    const definedCallback = callback ? callback : () => {};
+
+    const publishes = [promisify(this.queue.publish)()];
+    Array.from(this.orderedQueues.values()).forEach(q =>
+      publishes.push(promisify(q.publish)())
+    );
+    const allPublishes = Promise.all(publishes);
+
+    allPublishes
+      .then(() => {
+        definedCallback(null);
+      })
+      .catch(definedCallback);
   }
   publish(data: Buffer, attributes?: Attributes): Promise<string>;
   publish(data: Buffer, callback: PublishCallback): void;
@@ -128,8 +170,13 @@ export class Publisher {
       }
     }
 
+    const span: Span | undefined = this.constructSpan(message);
+
     if (!message.orderingKey) {
       this.queue.add(message, callback);
+      if (span) {
+        span.end();
+      }
       return;
     }
 
@@ -143,6 +190,10 @@ export class Publisher {
 
     const queue = this.orderedQueues.get(key)!;
     queue.add(message, callback);
+
+    if (span) {
+      span.end();
+    }
   }
   /**
    * Indicates to the publisher that it is safe to continue publishing for the
@@ -177,13 +228,19 @@ export class Publisher {
       gaxOpts: {
         isBundling: false,
       },
+      enableOpenTelemetryTracing: false,
     };
 
-    const {batching, gaxOpts, messageOrdering} = extend(
-      true,
-      defaults,
-      options
-    );
+    const {
+      batching,
+      gaxOpts,
+      messageOrdering,
+      enableOpenTelemetryTracing,
+    } = extend(true, defaults, options);
+
+    this.tracing = enableOpenTelemetryTracing
+      ? new OpenTelemetryTracer()
+      : undefined;
 
     this.settings = {
       batching: {
@@ -193,11 +250,45 @@ export class Publisher {
       },
       gaxOpts,
       messageOrdering,
+      enableOpenTelemetryTracing,
     };
+  }
+
+  /**
+   * Constructs an OpenTelemetry span
+   *
+   * @private
+   *
+   * @param {PubsubMessage} message The message to create a span for
+   */
+  constructSpan(message: PubsubMessage): Span | undefined {
+    const spanAttributes = {
+      data: message.data,
+    };
+    const span: Span | undefined = this.tracing
+      ? this.tracing.createSpan(`${this.topic.name} publisher`, spanAttributes)
+      : undefined;
+    if (span) {
+      if (
+        message.attributes &&
+        message.attributes['googclient_OpenTelemetrySpanContext']
+      ) {
+        console.warn(
+          'googclient_OpenTelemetrySpanContext key set as message attribute, but will be overridden.'
+        );
+      }
+      if (!message.attributes) {
+        message.attributes = {};
+      }
+      message.attributes[
+        'googclient_OpenTelemetrySpanContext'
+      ] = JSON.stringify(span.context());
+    }
+    return span;
   }
 }
 
 promisifyAll(Publisher, {
   singular: true,
-  exclude: ['publish', 'setOptions'],
+  exclude: ['publish', 'setOptions', 'constructSpan'],
 });

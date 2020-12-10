@@ -76,11 +76,9 @@
  * @property {constructor} SubscriberClient
  *     Reference to {@link v1.SubscriberClient}.
  */
-const v1 = require('./v1');
+import * as v1 from './v1';
 export {v1};
-
-export {ServiceError} from '@grpc/grpc-js';
-export {CallOptions} from 'google-gax';
+export {ServiceError, CallOptions} from 'google-gax';
 export {
   Policy,
   GetPolicyCallback,
@@ -106,6 +104,7 @@ export {
   ExistsCallback,
   ExistsResponse,
   PubSub,
+  ClientConfig,
 } from './pubsub';
 export {
   CreateSnapshotCallback,
@@ -150,9 +149,9 @@ export {
 
 if (process.env.DEBUG_GRPC) {
   console.info('gRPC logging set to verbose');
-  const {setLogger, setLogVerbosity, logVerbosity} = require('@grpc/grpc-js');
-  setLogger(console);
-  setLogVerbosity(logVerbosity.DEBUG);
+  const grpc = require('google-gax').grpc;
+  grpc.setLogger(console);
+  grpc.setLogVerbosity(grpc.logVerbosity.DEBUG);
 }
 import * as protos from '../protos/protos';
 export {protos};

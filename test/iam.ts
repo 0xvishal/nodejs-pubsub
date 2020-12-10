@@ -14,7 +14,7 @@
 
 import * as promisify from '@google-cloud/promisify';
 import * as assert from 'assert';
-import {describe, it} from 'mocha';
+import {describe, it, before, beforeEach} from 'mocha';
 import * as proxyquire from 'proxyquire';
 
 import * as iamTypes from '../src/iam';
@@ -37,7 +37,6 @@ describe('IAM', () => {
 
   const PUBSUB = ({
     options: {},
-    Promise: {},
     request: util.noop,
   } as {}) as PubSub;
   const ID = 'id';
@@ -53,10 +52,6 @@ describe('IAM', () => {
   });
 
   describe('initialization', () => {
-    it('should localize pubsub.Promise', () => {
-      assert.strictEqual(iam.Promise, PUBSUB.Promise);
-    });
-
     it('should localize pubsub', () => {
       assert.strictEqual(iam.pubsub, PUBSUB);
     });
@@ -116,7 +111,7 @@ describe('IAM', () => {
 
     it('should throw an error if a policy is not supplied', () => {
       assert.throws(() => {
-        // tslint:disable-next-line no-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (iam as any).setPolicy(util.noop);
       }, /A policy object is required\./);
     });
@@ -149,7 +144,7 @@ describe('IAM', () => {
   describe('testPermissions', () => {
     it('should throw an error if permissions are missing', () => {
       assert.throws(() => {
-        // tslint:disable-next-line no-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (iam as any).testPermissions(util.noop);
       }, /Permissions are required\./);
     });

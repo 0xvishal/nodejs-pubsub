@@ -15,13 +15,13 @@
  */
 
 import * as assert from 'assert';
-import {describe, it} from 'mocha';
+import {describe, it, before, beforeEach, afterEach} from 'mocha';
 import {EventEmitter} from 'events';
-import {CallOptions} from 'google-gax';
-import {Metadata, ServiceError} from '@grpc/grpc-js';
+import {CallOptions, grpc} from 'google-gax';
 import * as proxyquire from 'proxyquire';
 import * as sinon from 'sinon';
 import * as uuid from 'uuid';
+import defer = require('p-defer');
 
 import * as messageTypes from '../src/message-queues';
 import {BatchError} from '../src/message-queues';
@@ -29,15 +29,19 @@ import {Message, Subscriber} from '../src/subscriber';
 
 class FakeClient {
   async acknowledge(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     reqOpts: {subscription: string; ackIds: string[]},
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     callOptions: CallOptions
   ): Promise<void> {}
   async modifyAckDeadline(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     reqOpts: {
       subscription: string;
       ackIds: string[];
       ackDeadlineSeconds: number;
     },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     callOptions: CallOptions
   ): Promise<void> {}
 }
@@ -68,20 +72,20 @@ describe('MessageQueues', () => {
 
   let subscriber: FakeSubscriber;
 
-  // tslint:disable-next-line variable-name no-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let MessageQueue: any;
   // tslint:disable-next-line variable-name
   let AckQueue: typeof messageTypes.AckQueue;
   // tslint:disable-next-line variable-name
   let ModAckQueue: typeof messageTypes.ModAckQueue;
 
+  type QueuedMessages = Array<[string, number?]>;
+
   before(() => {
     const queues = proxyquire('../src/message-queues.js', {});
 
     AckQueue = queues.AckQueue;
     ModAckQueue = queues.ModAckQueue;
-
-    type QueuedMessages = Array<[string, number?]>;
 
     MessageQueue = class MessageQueue extends queues.MessageQueue {
       batches = [] as QueuedMessages[];
@@ -112,7 +116,7 @@ describe('MessageQueues', () => {
       it('should set any provided options', () => {
         const fakeOptions = {};
         const stub = sandbox.stub(MessageQueue.prototype, 'setOptions');
-        const mq = new MessageQueue(subscriber, fakeOptions);
+        new MessageQueue(subscriber, fakeOptions);
 
         const [options] = stub.lastCall.args;
         assert.strictEqual(options, fakeOptions);
@@ -209,6 +213,35 @@ describe('MessageQueues', () => {
         setImmediate(() => messageQueue.flush());
         return promise;
       });
+
+      it('should resolve onDrain only after all in-flight messages have been flushed', async () => {
+        const log: string[] = [];
+        const sendDone = defer();
+        sandbox.stub(messageQueue, '_sendBatch').callsFake(async () => {
+          log.push('send:start');
+          await sendDone.promise;
+          log.push('send:end');
+        });
+
+        const message = new FakeMessage();
+        const deadline = 10;
+        const onDrainBeforeFlush = messageQueue
+          .onDrain()
+          .then(() => log.push('drain1'));
+        messageQueue.add(message as Message, deadline);
+        messageQueue.flush();
+        assert.deepStrictEqual(log, ['send:start']);
+        sendDone.resolve();
+        await messageQueue.onDrain().then(() => log.push('drain2'));
+        await onDrainBeforeFlush;
+
+        assert.deepStrictEqual(log, [
+          'send:start',
+          'send:end',
+          'drain1',
+          'drain2',
+        ]);
+      });
     });
 
     describe('onFlush', () => {
@@ -221,6 +254,21 @@ describe('MessageQueues', () => {
       it('should re-use existing promises', () => {
         const promise1 = messageQueue.onFlush();
         const promise2 = messageQueue.onFlush();
+
+        assert.strictEqual(promise1, promise2);
+      });
+    });
+
+    describe('onDrain', () => {
+      it('should create a promise', () => {
+        const promise = messageQueue.onDrain();
+
+        assert(promise instanceof Promise);
+      });
+
+      it('should re-use existing promises', () => {
+        const promise1 = messageQueue.onDrain();
+        const promise2 = messageQueue.onDrain();
 
         assert.strictEqual(promise1, promise2);
       });
@@ -323,11 +371,12 @@ describe('MessageQueues', () => {
 
       const ackIds = messages.map(message => message.ackId);
 
-      const fakeError = new Error('Err.') as ServiceError;
+      const fakeError = new Error('Err.') as grpc.ServiceError;
       fakeError.code = 2;
-      fakeError.metadata = new Metadata();
+      fakeError.metadata = new grpc.Metadata();
 
-      const expectedMessage = `Failed to "acknowledge" for 3 message(s). Reason: Err.`;
+      const expectedMessage =
+        'Failed to "acknowledge" for 3 message(s). Reason: Err.';
 
       sandbox.stub(subscriber.client, 'acknowledge').rejects(fakeError);
 
@@ -447,11 +496,12 @@ describe('MessageQueues', () => {
 
       const ackIds = messages.map(message => message.ackId);
 
-      const fakeError = new Error('Err.') as ServiceError;
+      const fakeError = new Error('Err.') as grpc.ServiceError;
       fakeError.code = 2;
-      fakeError.metadata = new Metadata();
+      fakeError.metadata = new grpc.Metadata();
 
-      const expectedMessage = `Failed to "modifyAckDeadline" for 3 message(s). Reason: Err.`;
+      const expectedMessage =
+        'Failed to "modifyAckDeadline" for 3 message(s). Reason: Err.';
 
       sandbox.stub(subscriber.client, 'modifyAckDeadline').rejects(fakeError);
 

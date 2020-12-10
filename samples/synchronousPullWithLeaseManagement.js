@@ -33,7 +33,7 @@ function main(
   projectId = 'YOUR_PROJECT_ID',
   subscriptionName = 'YOUR_SUBSCRIPTION_NAME'
 ) {
-  // [START pubsub_subscriber_sync_pull_with_lease_management]
+  // [START pubsub_subscriber_sync_pull_with_lease]
   /**
    * TODO(developer): Uncomment these variables before running the sample.
    */
@@ -100,7 +100,7 @@ function main(
         console.log(`Acknowledged: "${message.message.data}".`);
         // Exit after the message is acknowledged.
         waiting = false;
-        console.log(`Done.`);
+        console.log('Done.');
       } else {
         // If the message is not yet processed..
         const modifyAckRequest = {
@@ -120,7 +120,7 @@ function main(
   }
 
   synchronousPullWithLeaseManagement().catch(console.error);
-  // [END pubsub_subscriber_sync_pull_with_lease_management]
+  // [END pubsub_subscriber_sync_pull_with_lease]
 }
 
 main(...process.argv.slice(2));

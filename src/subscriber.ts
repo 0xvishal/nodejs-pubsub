@@ -18,17 +18,17 @@ import {DateStruct, PreciseDate} from '@google-cloud/precise-date';
 import {replaceProjectIdToken} from '@google-cloud/projectify';
 import {promisify} from '@google-cloud/promisify';
 import {EventEmitter} from 'events';
-import {ClientStub} from 'google-gax';
-import {common as protobuf} from 'protobufjs';
+import {SpanContext, Span} from '@opentelemetry/api';
 
-import {google} from '../proto/pubsub';
-
+import {google} from '../protos/protos';
 import {Histogram} from './histogram';
 import {FlowControlOptions, LeaseManager} from './lease-manager';
 import {AckQueue, BatchOptions, ModAckQueue} from './message-queues';
 import {MessageStream, MessageStreamOptions} from './message-stream';
 import {Subscription} from './subscription';
 import {defaultOptions} from './default-options';
+import {SubscriberClient} from './v1';
+import {OpenTelemetryTracer} from './opentelemetry-tracing';
 
 export type PullResponse = google.pubsub.v1.IPullResponse;
 
@@ -48,7 +48,7 @@ export type PullResponse = google.pubsub.v1.IPullResponse;
  *   // {
  *   //   ackId: 'RUFeQBJMJAxESVMrQwsqWBFOBCEhPjA',
  *   //   attributes: {key: 'value'},
- *   //   data: Buffer.from('Hello, world!),
+ *   //   data: Buffer.from('Hello, world!'),
  *   //   id: '1551297743043',
  *   //   orderingKey: 'ordering-key',
  *   //   publishTime: new PreciseDate('2019-02-27T20:02:19.029534186Z'),
@@ -203,7 +203,9 @@ export interface SubscriberOptions {
   ackDeadline?: number;
   batching?: BatchOptions;
   flowControl?: FlowControlOptions;
+  useLegacyFlowControl?: boolean;
   streamingOptions?: MessageStreamOptions;
+  enableOpenTelemetryTracing?: boolean;
 }
 
 /**
@@ -213,6 +215,9 @@ export interface SubscriberOptions {
  *     99th percentile time it takes to acknowledge a message.
  * @property {BatchOptions} [batching] Request batching options.
  * @property {FlowControlOptions} [flowControl] Flow control options.
+ * @property {boolean} [useLegacyFlowControl] Disables enforcing flow control
+ *     settings at the Cloud PubSub server and uses the less accurate method
+ *     of only enforcing flow control at the client side.
  * @property {MessageStreamOptions} [streamingOptions] Streaming options.
  */
 /**
@@ -226,6 +231,9 @@ export interface SubscriberOptions {
  */
 export class Subscriber extends EventEmitter {
   ackDeadline: number;
+  maxMessages: number;
+  maxBytes: number;
+  useLegacyFlowControl: boolean;
   isOpen: boolean;
   private _acks!: AckQueue;
   private _histogram: Histogram;
@@ -237,16 +245,19 @@ export class Subscriber extends EventEmitter {
   private _options!: SubscriberOptions;
   private _stream!: MessageStream;
   private _subscription: Subscription;
+  private _tracing: OpenTelemetryTracer | undefined;
   constructor(subscription: Subscription, options = {}) {
     super();
 
     this.ackDeadline = 10;
+    this.maxMessages = defaultOptions.subscription.maxOutstandingMessages;
+    this.maxBytes = defaultOptions.subscription.maxOutstandingBytes;
+    this.useLegacyFlowControl = false;
     this.isOpen = false;
     this._isUserSetDeadline = false;
     this._histogram = new Histogram({min: 10, max: 600});
     this._latencies = new Histogram();
     this._subscription = subscription;
-
     this.setOptions(options);
   }
   /**
@@ -323,7 +334,7 @@ export class Subscriber extends EventEmitter {
    * @returns {Promise<object>}
    * @private
    */
-  async getClient(): Promise<ClientStub> {
+  async getClient(): Promise<SubscriberClient> {
     const pubsub = this._subscription.pubsub;
     const [client] = await promisify(pubsub.getClient_).call(pubsub, {
       client: 'SubscriberClient',
@@ -397,15 +408,19 @@ export class Subscriber extends EventEmitter {
       this._isUserSetDeadline = true;
     }
 
-    // In the event that the user has specified the maxMessages option, we want
-    // to make sure that the maxStreams option isn't higher.
-    // It doesn't really make sense to open 5 streams if the user only wants
-    // 1 message at a time.
+    this.useLegacyFlowControl = options.useLegacyFlowControl || false;
     if (options.flowControl) {
-      const {
-        maxMessages = defaultOptions.subscription.maxOutstandingMessages,
-      } = options.flowControl;
+      this.maxMessages =
+        options.flowControl!.maxMessages ||
+        defaultOptions.subscription.maxOutstandingMessages;
+      this.maxBytes =
+        options.flowControl!.maxBytes ||
+        defaultOptions.subscription.maxOutstandingBytes;
 
+      // In the event that the user has specified the maxMessages option, we
+      // want to make sure that the maxStreams option isn't higher.
+      // It doesn't really make sense to open 5 streams if the user only wants
+      // 1 message at a time.
       if (!options.streamingOptions) {
         options.streamingOptions = {} as MessageStreamOptions;
       }
@@ -413,9 +428,47 @@ export class Subscriber extends EventEmitter {
       const {
         maxStreams = defaultOptions.subscription.maxStreams,
       } = options.streamingOptions;
-      options.streamingOptions.maxStreams = Math.min(maxStreams, maxMessages);
+      options.streamingOptions.maxStreams = Math.min(
+        maxStreams,
+        this.maxMessages
+      );
     }
+    this._tracing = options.enableOpenTelemetryTracing
+      ? new OpenTelemetryTracer()
+      : undefined;
   }
+
+  /**
+   * Constructs an OpenTelemetry span from the incoming message.
+   *
+   * @param {Message} message One of the received messages
+   * @private
+   */
+  private _constructSpan(message: Message): Span | undefined {
+    // Handle cases where OpenTelemetry is disabled or no span context was sent through message
+    if (
+      !this._tracing ||
+      !message.attributes ||
+      !message.attributes['googclient_OpenTelemetrySpanContext']
+    ) {
+      return undefined;
+    }
+    const spanValue = message.attributes['googclient_OpenTelemetrySpanContext'];
+    const parentSpanContext: SpanContext | undefined = spanValue
+      ? JSON.parse(spanValue)
+      : undefined;
+    const spanAttributes = {
+      ackId: message.ackId,
+      deliveryAttempt: message.deliveryAttempt,
+    };
+    // Subscriber spans should always have a publisher span as a parent.
+    // Return undefined if no parent is provided
+    const span = parentSpanContext
+      ? this._tracing.createSpan(this._name, spanAttributes, parentSpanContext)
+      : undefined;
+    return span;
+  }
+
   /**
    * Callback to be invoked when a new message is available.
    *
@@ -437,11 +490,15 @@ export class Subscriber extends EventEmitter {
     for (const data of receivedMessages!) {
       const message = new Message(this, data);
 
+      const span: Span | undefined = this._constructSpan(message);
       if (this.isOpen) {
         message.modAck(this.ackDeadline);
         this._inventory.add(message);
       } else {
         message.nack();
+      }
+      if (span) {
+        span.end();
       }
     }
   }
@@ -464,6 +521,14 @@ export class Subscriber extends EventEmitter {
     if (this._modAcks.numPendingRequests) {
       promises.push(this._modAcks.onFlush());
       this._modAcks.flush();
+    }
+
+    if (this._acks.numInFlightRequests) {
+      promises.push(this._acks.onDrain());
+    }
+
+    if (this._modAcks.numInFlightRequests) {
+      promises.push(this._modAcks.onDrain());
     }
 
     await Promise.all(promises);

@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import {ServiceError} from '@grpc/grpc-js';
+import {ServiceError} from 'google-gax';
 import {EventEmitter} from 'events';
 
 import {BatchPublishOptions, MessageBatch} from './message-batch';
 import {PublishError} from './publish-error';
-import {Publisher, PubsubMessage, PublishCallback, BATCH_LIMITS} from './';
-import {google} from '../../proto/pubsub';
+import {Publisher, PubsubMessage, PublishCallback} from './';
+import {google} from '../../protos/protos';
 
 export interface PublishDone {
   (err: ServiceError | null): void;
@@ -131,7 +131,7 @@ export class Queue extends MessageQueue {
   /**
    * Cancels any pending publishes and calls _publish immediately.
    */
-  publish(): void {
+  publish(callback?: PublishDone): void {
     const {messages, callbacks} = this.batch;
 
     this.batch = new MessageBatch(this.batchOptions);
@@ -141,7 +141,7 @@ export class Queue extends MessageQueue {
       delete this.pending;
     }
 
-    this._publish(messages, callbacks);
+    this._publish(messages, callbacks, callback);
   }
 }
 
@@ -259,7 +259,8 @@ export class OrderedQueue extends MessageQueue {
    *
    * @fires OrderedQueue#drain
    */
-  publish(): void {
+  publish(callback?: PublishDone): void {
+    const definedCallback = callback || (() => {});
     this.inFlight = true;
 
     if (this.pending) {
@@ -274,10 +275,12 @@ export class OrderedQueue extends MessageQueue {
 
       if (err) {
         this.handlePublishFailure(err);
+        definedCallback(err);
       } else if (this.batches.length) {
         this.beginNextPublish();
       } else {
         this.emit('drain');
+        definedCallback(null);
       }
     });
   }

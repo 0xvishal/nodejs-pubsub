@@ -14,14 +14,13 @@
 
 import * as pfy from '@google-cloud/promisify';
 import * as assert from 'assert';
-import {describe, it} from 'mocha';
+import {describe, it, beforeEach, before, after, afterEach} from 'mocha';
 import * as proxyquire from 'proxyquire';
 import * as sinon from 'sinon';
 
 import {PubSub, RequestConfig} from '../src/pubsub';
 import * as snapTypes from '../src/snapshot';
 import {Subscription} from '../src/subscription';
-import * as util from '../src/util';
 
 let promisified = false;
 const fakePromisify = Object.assign({}, pfy, {
@@ -83,12 +82,6 @@ describe('Snapshot', () => {
 
     it('should promisify all the things', () => {
       assert(promisified);
-    });
-
-    it('should localize parent.Promise', () => {
-      const pubsub = new PubSub();
-      snapshot = new Snapshot(pubsub, SNAPSHOT_NAME);
-      assert.strictEqual(snapshot.Promise, pubsub.Promise);
     });
 
     it('should localize the parent', () => {

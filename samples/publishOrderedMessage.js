@@ -25,67 +25,61 @@
 // sample-metadata:
 //   title: Publish Ordered Message
 //   description: Demonstrates how to publish messages to a topic
-//     with ordering. Please see "Listen for Ordered Messages" for
-//     the other side of this.
+//     with ordering. Please see "Create Subscription With Ordering" for
+//     information on setting up a subscription that will receive the
+//     messages with proper ordering.
 //   usage: node publishOrderedMessage.js <topic-name> <data>
-
-let publishCounterValue = 1;
-
-function getPublishCounterValue() {
-  return publishCounterValue;
-}
-
-function setPublishCounterValue(value) {
-  publishCounterValue = value;
-}
 
 async function main(
   topicName = 'YOUR_TOPIC_NAME',
-  data = JSON.stringify({foo: 'bar'})
+  data = JSON.stringify({foo: 'bar'}),
+  orderingKey = 'key1'
 ) {
-  // [START pubsub_publish_ordered_message]
+  // [START pubsub_publish_with_ordering_keys]
   /**
    * TODO(developer): Uncomment these variables before running the sample.
    */
   // const topicName = 'YOUR_TOPIC_NAME';
   // const data = JSON.stringify({foo: 'bar'});
+  // const orderingKey = 'key1';
 
   // Imports the Google Cloud client library
   const {PubSub} = require('@google-cloud/pubsub');
 
   // Creates a client; cache this for further use
-  const pubSubClient = new PubSub();
+  const pubSubClient = new PubSub({
+    // Sending messages to the same region ensures they are received in order
+    // even when multiple publishers are used.
+    apiEndpoint: 'us-east1-pubsub.googleapis.com:443',
+  });
 
   async function publishOrderedMessage() {
     // Publishes the message as a string, e.g. "Hello, world!" or JSON.stringify(someObject)
     const dataBuffer = Buffer.from(data);
 
-    const attributes = {
-      // Pub/Sub messages are unordered, so assign an order ID and manually order messages
-      counterId: `${getPublishCounterValue()}`,
+    // Be sure to set an ordering key that matches other messages
+    // you want to receive in order, relative to each other.
+    const message = {
+      data: dataBuffer,
+      orderingKey: orderingKey,
     };
 
     // Publishes the message
     const messageId = await pubSubClient
-      .topic(topicName)
-      .publish(dataBuffer, attributes);
+      .topic(topicName, {enableMessageOrdering: true})
+      .publishMessage(message);
 
-    // Update the counter value
-    setPublishCounterValue(parseInt(attributes.counterId, 10) + 1);
     console.log(`Message ${messageId} published.`);
 
     return messageId;
   }
 
   return await publishOrderedMessage();
-  // [END pubsub_publish_ordered_message]
+  // [END pubsub_publish_with_ordering_keys]
 }
 
-// This needs to be exported directly so that the system tests can find it.
-module.exports = {
-  publishOrderedMessage: main,
-};
-
-if (require.main === module) {
-  main(...process.argv.slice(2)).catch(console.error);
-}
+process.on('unhandledRejection', err => {
+  console.error(err.message);
+  process.exitCode = 1;
+});
+main(...process.argv.slice(2));

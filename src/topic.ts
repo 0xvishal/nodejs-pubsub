@@ -18,7 +18,7 @@ import {paginator} from '@google-cloud/paginator';
 import {promisifyAll} from '@google-cloud/promisify';
 import {CallOptions} from 'google-gax';
 
-import {google} from '../proto/pubsub';
+import {google} from '../protos/protos';
 
 import {IAM} from './iam';
 import {
@@ -47,7 +47,6 @@ import {
   Subscription,
   SubscriptionOptions,
 } from './subscription';
-import * as util from './util';
 
 export type TopicMetadata = google.pubsub.v1.ITopic;
 
@@ -80,7 +79,7 @@ export type GetTopicSubscriptionsResponse = PagedResponse<
   google.pubsub.v1.IListTopicSubscriptionsResponse
 >;
 
-// tslint:disable-next-line no-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type MessageOptions = PubsubMessage & {json?: any};
 
 /**
@@ -101,8 +100,6 @@ export type MessageOptions = PubsubMessage & {json?: any};
  * const topic = pubsub.topic('ordered-topic', {enableMessageOrdering: true});
  */
 export class Topic {
-  // tslint:disable-next-line variable-name
-  Promise?: PromiseConstructor;
   name: string;
   parent: PubSub;
   pubsub: PubSub;
@@ -115,9 +112,6 @@ export class Topic {
   ) as () => ObjectStream<Subscription>;
 
   constructor(pubsub: PubSub, name: string, options?: PublishOptions) {
-    if (pubsub.Promise) {
-      this.Promise = pubsub.Promise;
-    }
     /**
      * The fully qualified name of this topic.
      * @name Topic#name
@@ -181,6 +175,22 @@ export class Topic {
     this.iam = new IAM(pubsub, this.name);
   }
 
+  flush(): Promise<void>;
+  flush(callback: EmptyCallback): void;
+  /**
+   * Immediately sends all remaining queued data. This is mostly useful
+   * if you are planning to call close() on the PubSub object that holds
+   * the server connections.
+   *
+   * @param {EmptyCallback} [callback] Callback function.
+   * @returns {Promise<EmptyResponse>}
+   */
+  flush(callback?: EmptyCallback): Promise<void> | void {
+    // It doesn't matter here if callback is undefined; the Publisher
+    // flush() will handle it.
+    this.publisher.flush(callback!);
+  }
+
   create(gaxOpts?: CallOptions): Promise<CreateTopicResponse>;
   create(callback: CreateTopicCallback): void;
   create(gaxOpts: CallOptions, callback: CreateTopicCallback): void;
@@ -188,7 +198,7 @@ export class Topic {
    * Create a topic.
    *
    * @param {object} [gaxOpts] Request configuration options, outlined
-   *     here: https://googleapis.github.io/gax-nodejs/CallSettings.html.
+   *     here: https://googleapis.github.io/gax-nodejs/interfaces/CallOptions.html.
    * @param {CreateTopicCallback} [callback] Callback function.
    * @returns {Promise<CreateTopicResponse>}
    *
@@ -294,7 +304,7 @@ export class Topic {
    * @see [Topics: delete API Documentation]{@link https://cloud.google.com/pubsub/docs/reference/rest/v1/projects.topics/delete}
    *
    * @param {object} [gaxOpts] Request configuration options, outlined
-   *     here: https://googleapis.github.io/gax-nodejs/CallSettings.html.
+   *     here: https://googleapis.github.io/gax-nodejs/interfaces/CallOptions.html.
    * @param {function} [callback] The callback function.
    * @param {?error} callback.err An error returned while making this
    *     request.
@@ -401,7 +411,7 @@ export class Topic {
    * Get a topic if it exists.
    *
    * @param {object} [gaxOpts] Request configuration options, outlined
-   *     here: https://googleapis.github.io/gax-nodejs/CallSettings.html.
+   *     here: https://googleapis.github.io/gax-nodejs/interfaces/CallOptions.html.
    * @param {boolean} [gaxOpts.autoCreate=false] Automatically create the topic
    *     does not already exist.
    * @param {GetTopicCallback} [callback] Callback function.
@@ -466,7 +476,7 @@ export class Topic {
    * @see [Topics: get API Documentation]{@link https://cloud.google.com/pubsub/docs/reference/rest/v1/projects.topics/get}
    *
    * @param {object} [gaxOpts] Request configuration options, outlined
-   *     here: https://googleapis.github.io/gax-nodejs/CallSettings.html.
+   *     here: https://googleapis.github.io/gax-nodejs/interfaces/CallOptions.html.
    * @param {GetTopicMetadataCallback} [callback] Callback function.
    * @returns {Promise<GetTopicMetadataResponse>}
    *
@@ -591,7 +601,7 @@ export class Topic {
         let subscriptions: Subscription[];
 
         if (subNames) {
-          subscriptions = subNames.map(sub => this.subscription(sub));
+          subscriptions = subNames.map((sub: string) => this.subscription(sub));
         }
 
         callback!(err, subscriptions!, ...args);
@@ -834,14 +844,14 @@ export class Topic {
   /**
    * Updates the topic.
    *
-   * @see [UpdateTopicRequest API Documentation]{@link https://cloud.google.com/pubsub/docs/reference/rest/v1/UpdateTopicRequest}
+   * @see [UpdateTopicRequest API Documentation]{@link https://cloud.google.com/pubsub/docs/reference/rpc/google.pubsub.v1#google.pubsub.v1.UpdateTopicRequest}
    *
    * @param {object} metadata The fields to update. This should be structured
    *     like a {@link
    * https://cloud.google.com/pubsub/docs/reference/rest/v1/projects.topics#Topic|Topic
    * object}.
    * @param {object} [gaxOpts] Request configuration options, outlined
-   *     here: https://googleapis.github.io/gax-nodejs/CallSettings.html.
+   *     here: https://googleapis.github.io/gax-nodejs/interfaces/CallOptions.html.
    * @param {SetTopicMetadataCallback} [callback] Callback function.
    * @returns {Promise<SetTopicMetadataResponse>}
    *

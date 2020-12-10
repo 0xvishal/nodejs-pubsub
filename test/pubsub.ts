@@ -16,29 +16,28 @@ import * as pjy from '@google-cloud/projectify';
 import * as promisify from '@google-cloud/promisify';
 import arrify = require('arrify');
 import * as assert from 'assert';
-import {describe, it} from 'mocha';
+import {describe, it, before, beforeEach, after, afterEach} from 'mocha';
 import * as gax from 'google-gax';
-import * as grpc from '@grpc/grpc-js';
-import {CallOptions, ChannelCredentials, ServiceError} from '@grpc/grpc-js';
 import * as proxyquire from 'proxyquire';
 import * as sinon from 'sinon';
 
-import {google} from '../proto/pubsub';
+import {google} from '../protos/protos';
 import * as pubsubTypes from '../src/pubsub';
 import {Snapshot} from '../src/snapshot';
 import * as subby from '../src/subscription';
 import {Topic} from '../src/topic';
 import * as util from '../src/util';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const PKG = require('../../package.json');
 const sandbox = sinon.createSandbox();
 
-const fakeCreds = {} as ChannelCredentials;
-sandbox.stub(grpc.credentials, 'createInsecure').returns(fakeCreds);
+const fakeCreds = {} as gax.grpc.ChannelCredentials;
+sandbox.stub(gax.grpc.credentials, 'createInsecure').returns(fakeCreds);
 
 const subscriptionCached = subby.Subscription;
 
-// tslint:disable-next-line no-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let subscriptionOverride: any;
 
 function Subscription(
@@ -72,22 +71,22 @@ const fakePromisify = Object.assign({}, promisify, {
 });
 
 let pjyOverride: Function;
-function fakePjy() {
-  return (pjyOverride || pjy.replaceProjectIdToken).apply(null, arguments);
+function fakePjy(...args: Array<{}>) {
+  return (pjyOverride || pjy.replaceProjectIdToken)(...args);
 }
 
 class FakeSnapshot {
-  calledWith_: IArguments;
-  constructor() {
-    this.calledWith_ = arguments;
+  calledWith_: Array<{}>;
+  constructor(...args: Array<{}>) {
+    this.calledWith_ = args;
   }
 }
 
 class FakeTopic {
-  calledWith_: IArguments;
+  calledWith_: Array<{}>;
   getSubscriptions?: Function;
-  constructor() {
-    this.calledWith_ = arguments;
+  constructor(...args: Array<{}>) {
+    this.calledWith_ = args;
   }
 }
 
@@ -115,12 +114,12 @@ const fakePaginator = {
 };
 
 let googleAuthOverride: Function | null;
-function fakeGoogleAuth() {
-  return (googleAuthOverride || util.noop).apply(null, arguments);
+function fakeGoogleAuth(...args: Array<{}>) {
+  return (googleAuthOverride || util.noop)(...args);
 }
 
 const v1Override = {};
-// tslint:disable-next-line no-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let v1ClientOverrides: any = {};
 
 function defineOverridableClient(clientName: string) {
@@ -148,10 +147,13 @@ describe('PubSub', () => {
   let pubsub: pubsubTypes.PubSub;
   const OPTIONS = {
     projectId: PROJECT_ID,
-    promise: {},
   } as pubsubTypes.ClientConfig;
 
   const PUBSUB_EMULATOR_HOST = process.env.PUBSUB_EMULATOR_HOST;
+
+  interface PostCloseCallback {
+    (err: Error | null): void;
+  }
 
   before(() => {
     delete process.env.PUBSUB_EMULATOR_HOST;
@@ -166,7 +168,7 @@ describe('PubSub', () => {
       'google-auth-library': {
         GoogleAuth: fakeGoogleAuth,
       },
-      grpc,
+      grpc: gax.grpc,
       './snapshot': {Snapshot: FakeSnapshot},
       './subscription': {Subscription},
       './topic': {Topic: FakeTopic},
@@ -243,6 +245,15 @@ describe('PubSub', () => {
       assert.deepStrictEqual(pubsub.api, {});
     });
 
+    it('should default to the opened state', () => {
+      assert.strictEqual(pubsub.isOpen, true);
+    });
+
+    it('should not be in the opened state after close()', async () => {
+      await pubsub.close();
+      assert.strictEqual(pubsub.isOpen, false);
+    });
+
     it('should cache a local google-auth-library instance', () => {
       const fakeGoogleAuthInstance = {};
       const options = {
@@ -278,10 +289,6 @@ describe('PubSub', () => {
     it('should set isEmulator to false by default', () => {
       assert.strictEqual(pubsub.isEmulator, false);
     });
-
-    it('should localize a Promise override', () => {
-      assert.strictEqual(pubsub.Promise, OPTIONS.promise);
-    });
   });
 
   describe('createSubscription', () => {
@@ -300,24 +307,25 @@ describe('PubSub', () => {
       name: 'subscription-name',
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const subClass = Subscription as any;
+
     beforeEach(() => {
-      ((Subscription as {}) as typeof subby.Subscription).formatMetadata_ = (
-        metadata: subby.SubscriptionMetadata
-      ) => {
-        return Object.assign({}, metadata) as subby.SubscriptionMetadata;
+      subClass.formatMetadata_ = (metadata: {}) => {
+        return Object.assign({}, metadata);
       };
     });
 
     it('should throw if no Topic is provided', () => {
       assert.throws(() => {
-        // tslint:disable-next-line no-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (pubsub as any).createSubscription();
       }, /A Topic is required for a new subscription\./);
     });
 
     it('should throw if no subscription name is provided', () => {
       assert.throws(() => {
-        // tslint:disable-next-line no-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (pubsub as any).createSubscription(TOPIC_NAME);
       }, /A subscription name is required./);
     });
@@ -334,7 +342,7 @@ describe('PubSub', () => {
       pubsub.request = (config, callback: Function) => {
         callback(null, apiResponse);
       };
-      // tslint:disable-next-line no-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (pubsub as any).createSubscription(TOPIC, SUB_NAME, undefined, done);
     });
 
@@ -462,11 +470,9 @@ describe('PubSub', () => {
         a: 'a',
       };
 
-      ((Subscription as {}) as typeof subby.Subscription).formatMetadata_ = (
-        metadata: subby.SubscriptionMetadata
-      ) => {
+      subClass.formatMetadata_ = (metadata: {}) => {
         assert.deepStrictEqual(metadata, fakeMetadata);
-        return (formatted as {}) as subby.SubscriptionMetadata;
+        return formatted;
       };
 
       pubsub.request = (config: pubsubTypes.RequestConfig) => {
@@ -623,13 +629,109 @@ describe('PubSub', () => {
     });
   });
 
+  describe('detachSubscription', () => {
+    pubsub = new pubsubTypes.PubSub({});
+    const SUB_NAME = 'subscription';
+    const SUBSCRIPTION = {
+      name: 'projects/' + PROJECT_ID + '/subscriptions/' + SUB_NAME,
+    };
+    const apiResponse = 'responseToCheck';
+
+    it('should throw if no subscription name is provided', () => {
+      assert.throws(() => {
+        pubsub.detachSubscription(undefined!);
+      }, /A subscription name is required./);
+    });
+
+    it('should not require configuration options', done => {
+      sandbox
+        .stub(pubsub, 'request')
+        .callsArgOnWith(1, undefined, undefined, apiResponse);
+
+      pubsub.detachSubscription(SUB_NAME, (err, response) => {
+        assert.strictEqual(response, apiResponse);
+        done();
+      });
+    });
+
+    it('should allow undefined/optional configuration options', done => {
+      sandbox
+        .stub(pubsub, 'request')
+        .callsArgOnWith(1, undefined, undefined, apiResponse);
+
+      pubsub.detachSubscription(SUB_NAME, undefined!, (_err, _response) => {
+        assert.strictEqual(_response, apiResponse);
+        done();
+      });
+    });
+
+    it('should detach a Subscription from a string', async () => {
+      sandbox.stub(pubsub, 'request').returns();
+      sandbox.stub(pubsub, 'subscription').callsFake(subName => {
+        assert.strictEqual(subName, SUB_NAME);
+        return SUBSCRIPTION as subby.Subscription;
+      });
+
+      await pubsub.detachSubscription(SUB_NAME);
+    });
+
+    it('should send correct request', done => {
+      const options = {};
+
+      sandbox.stub(pubsub, 'subscription').callsFake(subName => {
+        assert.strictEqual(subName, SUB_NAME);
+        return SUBSCRIPTION as subby.Subscription;
+      });
+
+      const reqOpts = {subscription: SUBSCRIPTION.name};
+
+      sandbox.stub(pubsub, 'request').callsFake(config => {
+        assert.strictEqual(config.client, 'PublisherClient');
+        assert.strictEqual(config.method, 'detachSubscription');
+        assert.deepStrictEqual(config.reqOpts, reqOpts);
+        assert.deepStrictEqual(config.gaxOpts, options);
+        done();
+      });
+
+      pubsub.detachSubscription(SUB_NAME, options, assert.ifError);
+    });
+
+    it('should pass options to the api request', done => {
+      const options = {
+        pageSize: 5,
+        maxResults: 10,
+      };
+
+      sandbox.stub(pubsub, 'subscription').returns({
+        name: SUB_NAME,
+      } as subby.Subscription);
+
+      sandbox.stub(pubsub, 'request').callsFake(config => {
+        assert.notStrictEqual(config.reqOpts, options);
+        assert.deepStrictEqual(config.gaxOpts, options);
+        done();
+      });
+
+      pubsub.detachSubscription(SUB_NAME, options, assert.ifError);
+    });
+  });
+
   describe('determineBaseUrl_', () => {
     function setHost(host: string) {
       process.env.PUBSUB_EMULATOR_HOST = host;
     }
 
-    beforeEach(() => {
+    function setSdkUrl(url: string) {
+      process.env.CLOUDSDK_API_ENDPOINT_OVERRIDES_PUBSUB = url;
+    }
+
+    function unsetVariables() {
       delete process.env.PUBSUB_EMULATOR_HOST;
+      delete process.env.CLOUDSDK_API_ENDPOINT_OVERRIDES_PUBSUB;
+    }
+
+    beforeEach(() => {
+      unsetVariables();
     });
 
     it('should do nothing if correct options are not set', () => {
@@ -648,7 +750,7 @@ describe('PubSub', () => {
       pubsub.determineBaseUrl_();
 
       assert.strictEqual(pubsub.options.servicePath, 'localhost');
-      assert.strictEqual(pubsub.options.port, '8085');
+      assert.strictEqual(pubsub.options.port, 8085);
       assert.strictEqual(pubsub.options.sslCreds, fakeCreds);
       assert.strictEqual(pubsub.isEmulator, true);
     });
@@ -657,12 +759,12 @@ describe('PubSub', () => {
       setHost('localhost:8080/');
       pubsub.determineBaseUrl_();
       assert.strictEqual(pubsub.options.servicePath, 'localhost');
-      assert.strictEqual(pubsub.options.port, '8080');
+      assert.strictEqual(pubsub.options.port, 8080);
 
       setHost('localhost:8081//');
       pubsub.determineBaseUrl_();
       assert.strictEqual(pubsub.options.servicePath, 'localhost');
-      assert.strictEqual(pubsub.options.port, '8081');
+      assert.strictEqual(pubsub.options.port, 8081);
     });
 
     it('should set the port to undefined if not set', () => {
@@ -670,6 +772,20 @@ describe('PubSub', () => {
       pubsub.determineBaseUrl_();
       assert.strictEqual(pubsub.options.servicePath, 'localhost');
       assert.strictEqual(pubsub.options.port, undefined);
+    });
+
+    it('should set the port to 80 for http with no port specified', () => {
+      setHost('http://localhost/');
+      pubsub.determineBaseUrl_();
+      assert.strictEqual(pubsub.options.servicePath, 'localhost');
+      assert.strictEqual(pubsub.options.port, 80);
+    });
+
+    it('should set the port to 443 for https with no port specified', () => {
+      setHost('https://localhost/');
+      pubsub.determineBaseUrl_();
+      assert.strictEqual(pubsub.options.servicePath, 'localhost');
+      assert.strictEqual(pubsub.options.port, 443);
     });
 
     it('should create credentials from local grpc if present', () => {
@@ -681,11 +797,13 @@ describe('PubSub', () => {
       };
 
       setHost('localhost');
-      pubsub.options.grpc = (fakeGrpc as unknown) as typeof grpc;
+      pubsub.options.grpc = (fakeGrpc as unknown) as typeof gax.grpc;
       pubsub.determineBaseUrl_();
       assert.strictEqual(pubsub.options.sslCreds, fakeCredentials);
     });
 
+    // This tests both the EMULATOR environment variable and detecting
+    // an emulator URL.
     describe('with PUBSUB_EMULATOR_HOST environment variable', () => {
       const PUBSUB_EMULATOR_HOST = 'localhost:9090';
 
@@ -694,14 +812,37 @@ describe('PubSub', () => {
       });
 
       after(() => {
-        delete process.env.PUBSUB_EMULATOR_HOST;
+        unsetVariables();
       });
 
       it('should use the PUBSUB_EMULATOR_HOST env var', () => {
         pubsub.determineBaseUrl_();
         assert.strictEqual(pubsub.options.servicePath, 'localhost');
-        assert.strictEqual(pubsub.options.port, '9090');
+        assert.strictEqual(pubsub.options.port, 9090);
         assert.strictEqual(pubsub.isEmulator, true);
+      });
+    });
+
+    // This tests both the CLOUDSDK environment variable and detecting
+    // a non-emulator URL.
+    describe('with CLOUDSDK_API_ENDPOINT_OVERRIDES_PUBSUB environment variable', () => {
+      const server = 'some.test.server.googleapis.com';
+      const apiUrl = `https://${server}/`;
+
+      beforeEach(() => {
+        setSdkUrl(apiUrl);
+      });
+
+      after(() => {
+        unsetVariables();
+      });
+
+      it('should use the CLOUDSDK_API_ENDPOINT_OVERRIDES_PUBSUB env var', () => {
+        pubsub.determineBaseUrl_();
+        assert.strictEqual(pubsub.options.servicePath, server);
+        assert.strictEqual(pubsub.options.port, 443);
+        assert.strictEqual(pubsub.isEmulator, false);
+        assert.strictEqual(pubsub.options.sslCreds, undefined);
       });
     });
   });
@@ -767,10 +908,15 @@ describe('PubSub', () => {
         return snapshot as Snapshot;
       });
 
-      pubsub.getSnapshots((err, snapshots) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      pubsub.getSnapshots((err: any, snapshots: any) => {
         assert.ifError(err);
         assert.strictEqual(snapshots![0], snapshot);
-        assert.strictEqual(snapshots![0].metadata, apiResponse.snapshots[0]);
+        assert.strictEqual(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (snapshots![0] as any).metadata,
+          apiResponse.snapshots[0]
+        );
         done();
       });
     });
@@ -857,7 +1003,7 @@ describe('PubSub', () => {
     it('should return Subscription instances', done => {
       pubsub.getSubscriptions(
         (
-          err: ServiceError | null,
+          err: gax.grpc.ServiceError | null,
           subscriptions?: subby.Subscription[] | null
         ) => {
           assert.ifError(err);
@@ -879,7 +1025,7 @@ describe('PubSub', () => {
 
       pubsub.getSubscriptions(
         (
-          err: ServiceError | null,
+          err: gax.grpc.ServiceError | null,
           subs?: subby.Subscription[] | null,
           apiResponse?: google.pubsub.v1.IListSubscriptionsResponse | null
         ) => {
@@ -992,10 +1138,12 @@ describe('PubSub', () => {
         return topic as Topic;
       };
 
-      pubsub.getTopics((err, topics) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      pubsub.getTopics((err: any, topics: any) => {
         assert.ifError(err);
         assert.strictEqual(topics![0], topic);
-        assert.strictEqual(topics![0].metadata, apiResponse.topics[0]);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        assert.strictEqual((topics![0] as any).metadata, apiResponse.topics[0]);
         done();
       });
     });
@@ -1035,10 +1183,25 @@ describe('PubSub', () => {
         getProjectId: () => Promise.resolve(PROJECT_ID),
       });
 
-      // tslint:disable-next-line no-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       pjyOverride = (reqOpts: any) => {
         return reqOpts;
       };
+    });
+
+    it('should throw if the PubSub is already closed', done => {
+      pubsub.close((err: Error | null) => {
+        assert.strictEqual(err, null);
+
+        pubsub.request(CONFIG, (errInner: Error | null) => {
+          assert.notStrictEqual(errInner, null);
+          assert.strictEqual(
+            errInner!.message.indexOf('closed PubSub object') >= 0,
+            true
+          );
+          done();
+        });
+      });
     });
 
     it('should call getClient_ with the correct config', done => {
@@ -1056,7 +1219,7 @@ describe('PubSub', () => {
         callback(expectedError);
       };
 
-      pubsub.request(CONFIG, (err: ServiceError | null) => {
+      pubsub.request(CONFIG, (err: gax.grpc.ServiceError | null) => {
         assert.strictEqual(expectedError, err);
         done();
       });
@@ -1064,8 +1227,12 @@ describe('PubSub', () => {
 
     it('should call client method with correct options', done => {
       const fakeClient = {};
-      // tslint:disable-next-line no-any
-      (fakeClient as any).fakeMethod = (reqOpts: any, gaxOpts: CallOptions) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (fakeClient as any).fakeMethod = (
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        reqOpts: any,
+        gaxOpts: gax.CallOptions
+      ) => {
         assert.deepStrictEqual(CONFIG.reqOpts, reqOpts);
         assert.deepStrictEqual(CONFIG.gaxOpts, gaxOpts);
         done();
@@ -1077,7 +1244,7 @@ describe('PubSub', () => {
     });
 
     it('should replace the project id token on reqOpts', done => {
-      // tslint:disable-next-line no-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       pjyOverride = (reqOpts: any, projectId: string) => {
         assert.deepStrictEqual(reqOpts, CONFIG.reqOpts);
         assert.strictEqual(projectId, PROJECT_ID);
@@ -1088,7 +1255,10 @@ describe('PubSub', () => {
   });
 
   describe('getClientAsync_', () => {
-    const FAKE_CLIENT_INSTANCE = class {};
+    // eslint-disable-next-line @typescript-eslint/class-name-casing
+    const FAKE_CLIENT_INSTANCE = class {
+      close() {}
+    };
     const CONFIG = ({
       client: 'FakeClient',
     } as {}) as pubsubTypes.GetClientConfig;
@@ -1099,6 +1269,19 @@ describe('PubSub', () => {
     });
 
     afterEach(() => sandbox.restore());
+
+    describe('closeAllClients_', () => {
+      it('should close out any open client', async () => {
+        // Create a client that we'll close.
+        const client = await pubsub.getClientAsync_(CONFIG);
+
+        // Stub out its close method, and verify it gets called.
+        const stub = sandbox.stub(client, 'close').resolves();
+        await pubsub.closeAllClients_();
+
+        assert.strictEqual(stub.called, true);
+      });
+    });
 
     describe('project ID', () => {
       beforeEach(() => {
@@ -1162,7 +1345,7 @@ describe('PubSub', () => {
       let numTimesFakeClientInstantiated = 0;
 
       // tslint:disable-next-line only-arrow-functions
-      v1ClientOverrides.FakeClient = function() {
+      v1ClientOverrides.FakeClient = function () {
         numTimesFakeClientInstantiated++;
         return FAKE_CLIENT_INSTANCE;
       };
@@ -1176,7 +1359,7 @@ describe('PubSub', () => {
 
     it('should return the correct client', async () => {
       // tslint:disable-next-line only-arrow-functions no-any
-      v1ClientOverrides.FakeClient = function(
+      v1ClientOverrides.FakeClient = function (
         options: pubsubTypes.ClientConfig
       ) {
         assert.strictEqual(options, pubsub.options);
@@ -1231,7 +1414,7 @@ describe('PubSub', () => {
     };
 
     beforeEach(() => {
-      // tslint:disable-next-line no-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       pjyOverride = (reqOpts: any) => {
         return reqOpts;
       };
@@ -1257,14 +1440,14 @@ describe('PubSub', () => {
         callback(error);
       };
 
-      pubsub.request(CONFIG, (err: ServiceError | null) => {
+      pubsub.request(CONFIG, (err: gax.ServiceError | null) => {
         assert.strictEqual(err, error);
         done();
       });
     });
 
     it('should replace the project id token on reqOpts', done => {
-      // tslint:disable-next-line no-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       pjyOverride = (reqOpts: any, projectId: string) => {
         assert.deepStrictEqual(reqOpts, CONFIG.reqOpts);
         assert.strictEqual(projectId, PROJECT_ID);
@@ -1289,8 +1472,8 @@ describe('PubSub', () => {
       };
 
       const fakeClient = {
-        // tslint:disable-next-line no-any
-        fakeMethod(reqOpts: any, gaxOpts: CallOptions) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        fakeMethod(reqOpts: any, gaxOpts: gax.CallOptions) {
           assert.strictEqual(reqOpts, replacedReqOpts);
           assert.strictEqual(gaxOpts, CONFIG.gaxOpts);
           done();
@@ -1308,7 +1491,7 @@ describe('PubSub', () => {
   describe('snapshot', () => {
     it('should throw if a name is not provided', () => {
       assert.throws(() => {
-        // tslint:disable-next-line no-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (pubsub as any).snapshot();
       }, /You must supply a valid name for the snapshot\./);
     });
@@ -1330,14 +1513,14 @@ describe('PubSub', () => {
 
     it('should return a Subscription object', () => {
       // tslint:disable-next-line only-arrow-functions
-      subscriptionOverride = function() {};
+      subscriptionOverride = function () {};
       const subscription = pubsub.subscription(SUB_NAME, {});
       assert(subscription instanceof subscriptionOverride);
     });
 
     it('should pass specified name to the Subscription', done => {
       // tslint:disable-next-line only-arrow-functions
-      subscriptionOverride = function(
+      subscriptionOverride = function (
         pubsub: pubsubTypes.PubSub,
         name: string
       ) {
@@ -1349,7 +1532,7 @@ describe('PubSub', () => {
 
     it('should honor settings', done => {
       // tslint:disable-next-line only-arrow-functions
-      subscriptionOverride = function(
+      subscriptionOverride = function (
         pubsub: pubsubTypes.PubSub,
         name: string,
         options: subby.SubscriptionOptions
@@ -1362,7 +1545,7 @@ describe('PubSub', () => {
 
     it('should throw if a name is not provided', () => {
       assert.throws(() => {
-        // tslint:disable-next-line no-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return (pubsub as any).subscription();
       }, /A name must be specified for a subscription\./);
     });
@@ -1371,7 +1554,7 @@ describe('PubSub', () => {
   describe('topic', () => {
     it('should throw if a name is not provided', () => {
       assert.throws(() => {
-        // tslint:disable-next-line no-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (pubsub as any).topic();
       }, /A name must be specified for a topic\./);
     });

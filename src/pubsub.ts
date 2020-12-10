@@ -20,10 +20,10 @@ import {promisifyAll} from '@google-cloud/promisify';
 import * as extend from 'extend';
 import {GoogleAuth} from 'google-auth-library';
 import * as gax from 'google-gax';
-import * as grpc from '@grpc/grpc-js';
-import {ServiceError, ChannelCredentials} from '@grpc/grpc-js';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const PKG = require('../../package.json');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const v1 = require('./v1');
 
 import {Snapshot} from './snapshot';
@@ -34,6 +34,8 @@ import {
   CreateSubscriptionOptions,
   CreateSubscriptionCallback,
   CreateSubscriptionResponse,
+  DetachSubscriptionCallback,
+  DetachSubscriptionResponse,
 } from './subscription';
 import {
   Topic,
@@ -45,9 +47,7 @@ import {
 import {PublishOptions} from './publisher';
 import {CallOptions} from 'google-gax';
 import {Transform} from 'stream';
-import {google} from '../proto/pubsub';
-
-const opts = {} as gax.GrpcClientOptions;
+import {google} from '../protos/protos';
 
 /**
  * Project ID placeholder.
@@ -62,7 +62,7 @@ export interface ClientConfig extends gax.GrpcClientOptions {
   apiEndpoint?: string;
   servicePath?: string;
   port?: string | number;
-  sslCreds?: ChannelCredentials;
+  sslCreds?: gax.grpc.ChannelCredentials;
 }
 
 export interface PageOptions {
@@ -118,6 +118,9 @@ export type EmptyResponse = [google.protobuf.IEmpty];
 export type ExistsCallback = RequestCallback<boolean>;
 export type ExistsResponse = [boolean];
 
+export type DetachedCallback = RequestCallback<boolean>;
+export type DetachedResponse = [boolean];
+
 export interface GetClientConfig {
   client: 'PublisherClient' | 'SubscriberClient';
 }
@@ -130,7 +133,7 @@ export interface RequestConfig extends GetClientConfig {
 
 export interface ResourceCallback<Resource, Response> {
   (
-    err: ServiceError | null,
+    err: gax.grpc.ServiceError | null,
     resource?: Resource | null,
     response?: Response | null
   ): void;
@@ -141,12 +144,12 @@ export type RequestCallback<T, R = void> = R extends void
   : PagedCallback<T, R>;
 
 export interface NormalCallback<TResponse> {
-  (err: ServiceError | null, res?: TResponse | null): void;
+  (err: gax.grpc.ServiceError | null, res?: TResponse | null): void;
 }
 
 export interface PagedCallback<Item, Response> {
   (
-    err: ServiceError | null,
+    err: gax.grpc.ServiceError | null,
     results?: Item[] | null,
     nextQuery?: {} | null,
     response?: Response | null
@@ -187,9 +190,11 @@ interface GetClientCallback {
  *     JSON file, the `projectId` option above is not necessary. NOTE: .pem and
  *     .p12 require you to specify the `email` option as well.
  * @property {string} [apiEndpoint] The `apiEndpoint` from options will set the
- *     host. If not set, the `PUBSUB_EMULATOR_HOST` environment variable from
- *     the gcloud SDK is honored, otherwise the actual API endpoint will be
- *     used.
+ *     host. If not set, the `PUBSUB_EMULATOR_HOST` environment variable from the
+ *     gcloud SDK is honored. We also check the `CLOUD_API_ENDPOINT_OVERRIDES_PUBSUB`
+ *     environment variable used by `gcloud alpha pubsub`. Otherwise the actual API
+ *     endpoint will be used. Note that if the URL doesn't end in '.googleapis.com',
+ *     we will assume that it's an emulator and disable strict SSL checks.
  * @property {string} [email] Account email address. Required when using a .pem
  *     or .p12 keyFilename.
  * @property {object} [credentials] Credentials object.
@@ -198,8 +203,6 @@ interface GetClientCallback {
  * @property {boolean} [autoRetry=true] Automatically retry requests if the
  *     response is related to rate limits or certain intermittent server errors.
  *     We will exponentially backoff subsequent requests by default.
- * @property {number} [maxRetries=3] Maximum number of automatic retries
- *     attempted before returning the error.
  * @property {Constructor} [promise] Custom promise module to use instead of
  *     native Promises.
  */
@@ -244,9 +247,10 @@ export class PubSub {
   getSnapshotsStream = paginator.streamify(
     'getSnapshots'
   ) as () => ObjectStream<Snapshot>;
-  getTopicsStream = paginator.streamify('getTopics') as () => ObjectStream<
-    Topic
-  >;
+  getTopicsStream = paginator.streamify(
+    'getTopics'
+  ) as () => ObjectStream<Topic>;
+  isOpen = true;
 
   constructor(options?: ClientConfig) {
     options = options || {};
@@ -276,8 +280,32 @@ export class PubSub {
     this.api = {};
     this.auth = new GoogleAuth(this.options);
     this.projectId = this.options.projectId || PROJECT_ID_PLACEHOLDER;
-    if (this.options.promise) {
-      this.Promise = this.options.promise;
+  }
+
+  close(): Promise<void>;
+  close(callback: EmptyCallback): void;
+  /**
+   * Closes out this object, releasing any server connections. Note that once
+   * you close a PubSub object, it may not be used again. Any pending operations
+   * (e.g. queued publish messages) will fail. If you have topic or subscription
+   * objects that may have pending operations, you should call close() on those
+   * first if you want any pending messages to be delivered correctly. The
+   * PubSub class doesn't track those.
+   *
+   * @callback EmptyCallback
+   * @returns {Promise<void>}
+   */
+  close(callback?: EmptyCallback): Promise<void> | void {
+    const definedCallback = callback || (() => {});
+    if (this.isOpen) {
+      this.isOpen = false;
+      this.closeAllClients_()
+        .then(() => {
+          definedCallback(null);
+        })
+        .catch(definedCallback);
+    } else {
+      definedCallback(null);
     }
   }
 
@@ -327,7 +355,7 @@ export class PubSub {
    *     of un-acked messages to allow before the subscription pauses incoming
    *     messages.
    * @property {object} [gaxOpts] Request configuration options, outlined
-   *     here: https://googleapis.github.io/gax-nodejs/CallSettings.html.
+   *     here: https://googleapis.github.io/gax-nodejs/interfaces/CallOptions.html.
    * @property {number|google.protobuf.Duration} [messageRetentionDuration] Set
    *     this to override the default duration of 7 days. This value is expected
    *     in seconds. Acceptable values are in the range of 10 minutes and 7
@@ -466,7 +494,7 @@ export class PubSub {
    *
    * @param {string} name Name of the topic.
    * @param {object} [gaxOpts] Request configuration options, outlined
-   *     here: https://googleapis.github.io/gax-nodejs/CallSettings.html.
+   *     here: https://googleapis.github.io/gax-nodejs/interfaces/CallOptions.html.
    * @param {CreateTopicCallback} [callback] Callback function.
    * @returns {Promise<CreateTopicResponse>}
    *
@@ -518,32 +546,132 @@ export class PubSub {
       }
     );
   }
+
+  detachSubscription(
+    name: string,
+    gaxOpts?: CallOptions
+  ): Promise<DetachSubscriptionResponse>;
+  detachSubscription(name: string, callback: DetachSubscriptionCallback): void;
+  detachSubscription(
+    name: string,
+    gaxOpts: CallOptions,
+    callback: DetachSubscriptionCallback
+  ): void;
+  /**
+   * Detach a subscription with the given name.
+   *
+   * @see [Admin: Pub/Sub administration API Documentation]{@link https://cloud.google.com/pubsub/docs/admin}
+   *
+   * @param {string} name Name of the subscription.
+   * @param {object} [gaxOpts] Request configuration options, outlined
+   *     here: https://googleapis.github.io/gax-nodejs/interfaces/CallOptions.html.
+   * @param {DetachSubscriptionCallback} [callback] Callback function.
+   * @returns {Promise<DetachSubscriptionResponse>}
+   *
+   * @example
+   * const {PubSub} = require('@google-cloud/pubsub');
+   * const pubsub = new PubSub();
+   *
+   * pubsub.detachSubscription('my-sub', (err, topic, apiResponse) => {
+   *   if (!err) {
+   *     // The topic was created successfully.
+   *   }
+   * });
+   *
+   * //-
+   * // If the callback is omitted, we'll return a Promise.
+   * //-
+   * pubsub.detachSubscription('my-sub').then(data => {
+   *   const apiResponse = data[0];
+   * });
+   */
+  detachSubscription(
+    name: string,
+    optsOrCallback?: CallOptions | DetachSubscriptionCallback,
+    callback?: DetachSubscriptionCallback
+  ): Promise<DetachSubscriptionResponse> | void {
+    if (typeof name !== 'string') {
+      throw new Error('A subscription name is required.');
+    }
+
+    const sub = this.subscription(name);
+    const reqOpts = {
+      subscription: sub.name,
+    };
+
+    const gaxOpts = typeof optsOrCallback === 'object' ? optsOrCallback : {};
+    callback = typeof optsOrCallback === 'function' ? optsOrCallback : callback;
+
+    this.request<google.pubsub.v1.IDetachSubscriptionRequest>(
+      {
+        client: 'PublisherClient',
+        method: 'detachSubscription',
+        reqOpts,
+        gaxOpts: gaxOpts as CallOptions,
+      },
+      callback!
+    );
+  }
+
   /**
    * Determine the appropriate endpoint to use for API requests, first trying
-   * the local `apiEndpoint` parameter. If the `apiEndpoint` parameter is null
-   * we try Pub/Sub emulator environment variable (PUBSUB_EMULATOR_HOST),
-   * otherwise the default JSON API.
+   * the `apiEndpoint` parameter. If that isn't set, we try the Pub/Sub emulator
+   * environment variable (PUBSUB_EMULATOR_HOST). If that is also null, we try
+   * the standard `gcloud alpha pubsub` environment variable
+   * (CLOUDSDK_API_ENDPOINT_OVERRIDES_PUBSUB). Otherwise the default production
+   * API is used.
+   *
+   * Note that if the URL doesn't end in '.googleapis.com', we will assume that
+   * it's an emulator and disable strict SSL checks.
    *
    * @private
    */
   determineBaseUrl_() {
-    const apiEndpoint = this.options.apiEndpoint;
-    if (!apiEndpoint && !process.env.PUBSUB_EMULATOR_HOST) {
+    // We allow an override from the client object options, or from
+    // one of these variables. The CLOUDSDK variable is provided for
+    // compatibility with the `gcloud alpha` utility.
+    const gcloudVarName = 'CLOUDSDK_API_ENDPOINT_OVERRIDES_PUBSUB';
+    const emulatorVarName = 'PUBSUB_EMULATOR_HOST';
+    const apiEndpoint =
+      this.options.apiEndpoint ||
+      process.env[emulatorVarName] ||
+      process.env[gcloudVarName];
+    if (!apiEndpoint) {
       return;
     }
 
-    const grpcInstance = this.options.grpc || grpc;
-    const baseUrl = apiEndpoint || process.env.PUBSUB_EMULATOR_HOST;
-    const leadingProtocol = new RegExp('^https*://');
+    // Parse the URL into a hostname and port, if possible.
+    const leadingProtocol = new RegExp('^https?://');
     const trailingSlashes = new RegExp('/*$');
-    const baseUrlParts = baseUrl!
+    const baseUrlParts = apiEndpoint!
       .replace(leadingProtocol, '')
       .replace(trailingSlashes, '')
       .split(':');
     this.options.servicePath = baseUrlParts[0];
-    this.options.port = baseUrlParts[1];
-    this.options.sslCreds = grpcInstance.credentials.createInsecure();
-    this.isEmulator = true;
+    if (!baseUrlParts[1]) {
+      // No port was given -- figure it out from the protocol.
+      if (apiEndpoint!.startsWith('https')) {
+        this.options.port = 443;
+      } else if (apiEndpoint!.startsWith('http')) {
+        this.options.port = 80;
+      } else {
+        this.options.port = undefined;
+      }
+    } else {
+      this.options.port = parseInt(baseUrlParts[1], 10);
+    }
+
+    // If this looks like a GCP URL of some kind, don't go into emulator
+    // mode. Otherwise, supply a fake SSL provider so a real cert isn't
+    // required for running the emulator.
+    const officialUrlMatch = this.options.servicePath!.endsWith(
+      '.googleapis.com'
+    );
+    if (!officialUrlMatch) {
+      const grpcInstance = this.options.grpc || gax.grpc;
+      this.options.sslCreds = grpcInstance.credentials.createInsecure();
+      this.isEmulator = true;
+    }
 
     if (!this.options.projectId && process.env.PUBSUB_PROJECT_ID) {
       this.options.projectId = process.env.PUBSUB_PROJECT_ID;
@@ -560,7 +688,7 @@ export class PubSub {
    * @property {boolean} [autoPaginate=true] Have pagination handled
    *     automatically.
    * @property {object} [options.gaxOpts] Request configuration options, outlined
-   *     here: https://googleapis.github.io/gax-nodejs/CallSettings.html.
+   *     here: https://googleapis.github.io/gax-nodejs/interfaces/CallOptions.html.
    * @property {number} [options.pageSize] Maximum number of results to return.
    * @property {string} [options.pageToken] Page token.
    */
@@ -637,11 +765,13 @@ export class PubSub {
         let snapshots: Snapshot[];
 
         if (rawSnapshots) {
-          snapshots = rawSnapshots.map(snapshot => {
-            const snapshotInstance = this.snapshot(snapshot.name!);
-            snapshotInstance.metadata = snapshot;
-            return snapshotInstance;
-          });
+          snapshots = rawSnapshots.map(
+            (snapshot: google.pubsub.v1.ISnapshot) => {
+              const snapshotInstance = this.snapshot(snapshot.name!);
+              snapshotInstance.metadata = snapshot;
+              return snapshotInstance;
+            }
+          );
         }
 
         callback!(err, snapshots!, ...args);
@@ -664,7 +794,7 @@ export class PubSub {
    * @property {boolean} [autoPaginate=true] Have pagination handled
    *     automatically.
    * @property {object} [options.gaxOpts] Request configuration options, outlined
-   *     here: https://googleapis.github.io/gax-nodejs/CallSettings.html.
+   *     here: https://googleapis.github.io/gax-nodejs/interfaces/CallOptions.html.
    * @property {number} [options.pageSize] Maximum number of results to return.
    * @property {string} [options.pageToken] Page token.
    * @param {string|Topic} options.topic - The name of the topic to
@@ -761,7 +891,7 @@ export class PubSub {
         let subscriptions: Subscription[];
 
         if (rawSubs) {
-          subscriptions = rawSubs.map(sub => {
+          subscriptions = rawSubs.map((sub: google.pubsub.v1.ISubscription) => {
             const subscriptionInstance = this.subscription(sub.name!);
             subscriptionInstance.metadata = sub;
             return subscriptionInstance;
@@ -783,7 +913,7 @@ export class PubSub {
    * @property {boolean} [autoPaginate=true] Have pagination handled
    *     automatically.
    * @property {object} [options.gaxOpts] Request configuration options, outlined
-   *     here: https://googleapis.github.io/gax-nodejs/CallSettings.html.
+   *     here: https://googleapis.github.io/gax-nodejs/interfaces/CallOptions.html.
    * @property {number} [options.pageSize] Maximum number of results to return.
    * @property {string} [options.pageToken] Page token.
    */
@@ -942,6 +1072,23 @@ export class PubSub {
     return gaxClient;
   }
   /**
+   * Close all open client objects.
+   *
+   * @private
+   *
+   * @returns {Promise}
+   */
+  async closeAllClients_(): Promise<void> {
+    const promises = [];
+    for (const clientConfig of Object.keys(this.api)) {
+      const gaxClient = this.api[clientConfig];
+      promises.push(gaxClient.close());
+      delete this.api[clientConfig];
+    }
+
+    await Promise.all(promises);
+  }
+  /**
    * Funnel all API requests through this method, to be sure we have a project
    * ID.
    *
@@ -954,9 +1101,22 @@ export class PubSub {
    * @param {function} [callback] The callback function.
    */
   request<T, R = void>(config: RequestConfig, callback: RequestCallback<T, R>) {
+    // This prevents further requests, in case any publishers were hanging around.
+    if (!this.isOpen) {
+      const statusObject = {
+        code: 0,
+        details: 'Cannot use a closed PubSub object.',
+        metadata: null,
+      };
+      const err = new Error(statusObject.details);
+      Object.assign(err, statusObject);
+      callback(err as gax.grpc.ServiceError);
+      return;
+    }
+
     this.getClient_(config, (err, client) => {
       if (err) {
-        callback(err as ServiceError);
+        callback(err as gax.grpc.ServiceError);
         return;
       }
       let reqOpts = extend(true, {}, config.reqOpts);
@@ -1024,6 +1184,7 @@ export class PubSub {
    * @throws {Error} If a name is not provided.
    *
    * @param {string} name The name of the topic.
+   * @param {PublishOptions} [options] Publisher configuration object.
    * @returns {Topic} A {@link Topic} instance.
    *
    * @example
@@ -1137,7 +1298,7 @@ export class PubSub {
 
 /*! Developer Documentation
  *
- * These methods can be agto-paginated.
+ * These methods can be auto-paginated.
  */
 paginator.extend(PubSub, ['getSnapshots', 'getSubscriptions', 'getTopics']);
 

@@ -15,20 +15,13 @@
  */
 
 import {promisify} from '@google-cloud/promisify';
-import {ClientStub} from 'google-gax';
-import {
-  ClientDuplexStream,
-  Metadata,
-  ServiceError,
-  status,
-  StatusObject,
-} from '@grpc/grpc-js';
+import {ClientStub, grpc} from 'google-gax';
 import * as isStreamEnded from 'is-stream-ended';
 import {PassThrough} from 'stream';
 
 import {PullRetry} from './pull-retry';
 import {Subscriber} from './subscriber';
-import {google} from '../proto/pubsub';
+import {google} from '../protos/protos';
 import {defaultOptions} from './default-options';
 
 /*!
@@ -58,7 +51,10 @@ interface StreamState {
 
 type StreamingPullRequest = google.pubsub.v1.IStreamingPullRequest;
 type PullResponse = google.pubsub.v1.IPullResponse;
-type PullStream = ClientDuplexStream<StreamingPullRequest, PullResponse> & {
+type PullStream = grpc.ClientDuplexStream<
+  StreamingPullRequest,
+  PullResponse
+> & {
   _readableState: StreamState;
 };
 
@@ -69,11 +65,11 @@ type PullStream = ClientDuplexStream<StreamingPullRequest, PullResponse> & {
  *
  * @param {object} status The gRPC status object.
  */
-export class StatusError extends Error implements ServiceError {
-  code: status;
+export class StatusError extends Error implements grpc.ServiceError {
+  code: grpc.status;
   details: string;
-  metadata: Metadata;
-  constructor(status: StatusObject) {
+  metadata: grpc.Metadata;
+  constructor(status: grpc.StatusObject) {
     super(status.details);
     this.code = status.code;
     this.details = status.details;
@@ -88,10 +84,10 @@ export class StatusError extends Error implements ServiceError {
  *
  * @param {Error} err The original error.
  */
-export class ChannelError extends Error implements ServiceError {
-  code: status;
+export class ChannelError extends Error implements grpc.ServiceError {
+  code: grpc.status;
   details: string;
-  metadata: Metadata;
+  metadata: grpc.Metadata;
   constructor(err: Error) {
     super(
       `Failed to connect to channel. Reason: ${
@@ -99,10 +95,10 @@ export class ChannelError extends Error implements ServiceError {
       }`
     );
     this.code = err.message.includes('deadline')
-      ? status.DEADLINE_EXCEEDED
-      : status.UNKNOWN;
+      ? grpc.status.DEADLINE_EXCEEDED
+      : grpc.status.UNKNOWN;
     this.details = err.message;
-    this.metadata = new Metadata();
+    this.metadata = new grpc.Metadata();
   }
 }
 
@@ -131,7 +127,6 @@ export interface MessageStreamOptions {
  * @param {MessageStreamOptions} [options] The message stream options.
  */
 export class MessageStream extends PassThrough {
-  destroyed: boolean;
   private _keepAliveHandle: NodeJS.Timer;
   private _fillHandle?: NodeJS.Timer;
   private _options: MessageStreamOptions;
@@ -143,7 +138,6 @@ export class MessageStream extends PassThrough {
 
     super({objectMode: true, highWaterMark: options.highWaterMark});
 
-    this.destroyed = false;
     this._options = options;
     this._retrier = new PullRetry();
     this._streams = new Map();
@@ -160,14 +154,24 @@ export class MessageStream extends PassThrough {
   /**
    * Destroys the stream and any underlying streams.
    *
-   * @param {error?} err An error to emit, if any.
+   * @param {error?} error An error to emit, if any.
    * @private
    */
-  destroy(err?: Error): void {
+  destroy(error?: Error | null): void {
+    // We can't assume Node has taken care of this in <14.
     if (this.destroyed) {
       return;
     }
-
+    super.destroy(error ? error : undefined);
+  }
+  /**
+   * Destroys the stream and any underlying streams.
+   *
+   * @param {error?} error An error to emit, if any.
+   * @param {Function} callback Callback for completion of any destruction.
+   * @private
+   */
+  _destroy(error: Error | null, callback: (error: Error | null) => void): void {
     this.destroyed = true;
     clearInterval(this._keepAliveHandle);
 
@@ -176,16 +180,7 @@ export class MessageStream extends PassThrough {
       stream.cancel();
     }
 
-    if (typeof super.destroy === 'function') {
-      return super.destroy(err);
-    }
-
-    process.nextTick(() => {
-      if (err) {
-        this.emit('error', err);
-      }
-      this.emit('close');
-    });
+    callback(error);
   }
   /**
    * Adds a StreamingPull stream to the combined stream.
@@ -230,6 +225,12 @@ export class MessageStream extends PassThrough {
     const request: StreamingPullRequest = {
       subscription: this._subscriber.name,
       streamAckDeadlineSeconds: this._subscriber.ackDeadline,
+      maxOutstandingMessages: this._subscriber.useLegacyFlowControl
+        ? 0
+        : this._subscriber.maxMessages,
+      maxOutstandingBytes: this._subscriber.useLegacyFlowControl
+        ? 0
+        : this._subscriber.maxBytes,
     };
 
     delete this._fillHandle;
@@ -258,7 +259,8 @@ export class MessageStream extends PassThrough {
    */
   private async _getClient(): Promise<ClientStub> {
     const client = await this._subscriber.getClient();
-    return client.getSubscriberStub();
+    client.initialize();
+    return client.subscriberStub as Promise<ClientStub>;
   }
   /**
    * Since we do not use the streams to ack/modAck messages, they will close
@@ -285,7 +287,7 @@ export class MessageStream extends PassThrough {
    * @param {Duplex} stream The ended stream.
    * @param {object} status The stream status.
    */
-  private _onEnd(stream: PullStream, status: StatusObject): void {
+  private _onEnd(stream: PullStream, status: grpc.StatusObject): void {
     this._removeStream(stream);
 
     if (this._fillHandle) {
@@ -329,7 +331,7 @@ export class MessageStream extends PassThrough {
    * @param {stream} stream The stream that was closed.
    * @param {object} status The status message stating why it was closed.
    */
-  private _onStatus(stream: PullStream, status: StatusObject): void {
+  private _onStatus(stream: PullStream, status: grpc.StatusObject): void {
     if (this.destroyed) {
       return;
     }

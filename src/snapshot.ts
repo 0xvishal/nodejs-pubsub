@@ -17,9 +17,8 @@
 import {promisifyAll} from '@google-cloud/promisify';
 import {CallOptions} from 'google-gax';
 
-import {google} from '../proto/pubsub';
-
-import {PubSub} from './index';
+import {google} from '../protos/protos';
+import {PubSub} from './pubsub';
 import {
   EmptyCallback,
   EmptyResponse,
@@ -27,7 +26,6 @@ import {
   ResourceCallback,
 } from './pubsub';
 import {Subscription} from './subscription';
-import * as util from './util';
 
 export type CreateSnapshotCallback = ResourceCallback<
   Snapshot,
@@ -105,13 +103,8 @@ export type SeekResponse = [google.pubsub.v1.ISeekResponse];
 export class Snapshot {
   parent: Subscription | PubSub;
   name: string;
-  // tslint:disable-next-line variable-name
-  Promise?: PromiseConstructor;
   metadata?: google.pubsub.v1.ISnapshot;
   constructor(parent: Subscription | PubSub, name: string) {
-    if (parent instanceof PubSub) {
-      this.Promise = parent.Promise;
-    }
     this.parent = parent;
     this.name = Snapshot.formatName_(parent.projectId, name);
   }
@@ -206,7 +199,7 @@ export class Snapshot {
   ): void | Promise<CreateSnapshotResponse> {
     if (!(this.parent instanceof Subscription)) {
       throw new Error(
-        `This is only available if you accessed this object through Subscription#snapshot`
+        'This is only available if you accessed this object through Subscription#snapshot'
       );
     }
 
@@ -261,7 +254,7 @@ export class Snapshot {
   ): void | Promise<SeekResponse> {
     if (!(this.parent instanceof Subscription)) {
       throw new Error(
-        `This is only available if you accessed this object through Subscription#snapshot`
+        'This is only available if you accessed this object through Subscription#snapshot'
       );
     }
     return this.parent.seek(this.name, gaxOpts! as CallOptions, callback!);

@@ -16,10 +16,16 @@
 
 import * as pfy from '@google-cloud/promisify';
 import * as assert from 'assert';
-import {describe, it} from 'mocha';
+import {describe, it, before, beforeEach, afterEach} from 'mocha';
 import {EventEmitter} from 'events';
 import * as proxyquire from 'proxyquire';
 import * as sinon from 'sinon';
+import {
+  BasicTracerProvider,
+  InMemorySpanExporter,
+  SimpleSpanProcessor,
+} from '@opentelemetry/tracing';
+import * as opentelemetry from '@opentelemetry/api';
 
 import {Topic} from '../../src';
 import * as p from '../../src/publisher';
@@ -36,7 +42,11 @@ const fakePromisify = Object.assign({}, pfy, {
     }
     promisified = true;
     assert.ok(options.singular);
-    assert.deepStrictEqual(options.exclude, ['publish', 'setOptions']);
+    assert.deepStrictEqual(options.exclude, [
+      'publish',
+      'setOptions',
+      'constructSpan',
+    ]);
   },
 });
 
@@ -46,7 +56,10 @@ class FakeQueue extends EventEmitter {
     super();
     this.publisher = publisher;
   }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   add(message: p.PubsubMessage, callback: p.PublishCallback): void {}
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  publish(callback: (err: Error | null) => void) {}
 }
 
 class FakeOrderedQueue extends FakeQueue {
@@ -57,6 +70,8 @@ class FakeOrderedQueue extends FakeQueue {
     this.orderingKey = key;
   }
   resumePublishing(): void {}
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  publish(callback: (err: Error | null) => void) {}
 }
 
 describe('Publisher', () => {
@@ -90,12 +105,6 @@ describe('Publisher', () => {
   describe('initialization', () => {
     it('should promisify all the things', () => {
       assert(promisified);
-    });
-
-    it('should localize Promise class if set', () => {
-      const t = {Promise} as Topic;
-      publisher = new Publisher(t);
-      assert.strictEqual(publisher.Promise, Promise);
     });
 
     it('should capture user options', () => {
@@ -144,6 +153,58 @@ describe('Publisher', () => {
       const [{attributes}, callback] = stub.lastCall.args;
       assert.strictEqual(attributes, attrs);
       assert.strictEqual(callback, spy);
+    });
+  });
+
+  describe('OpenTelemetry tracing', () => {
+    let tracingPublisher: p.Publisher = {} as p.Publisher;
+    const enableTracing: p.PublishOptions = {
+      enableOpenTelemetryTracing: true,
+    };
+    const disableTracing: p.PublishOptions = {
+      enableOpenTelemetryTracing: false,
+    };
+    const buffer = Buffer.from('Hello, world!');
+
+    beforeEach(() => {
+      // Declare tracingPublisher as type any and pre-define _tracing
+      // to gain access to the private field after publisher init
+      tracingPublisher['tracing'] = undefined;
+    });
+    it('should not instantiate a tracer when tracing is disabled', () => {
+      tracingPublisher = new Publisher(topic);
+      assert.strictEqual(tracingPublisher['tracing'], undefined);
+    });
+
+    it('should instantiate a tracer when tracing is enabled through constructor', () => {
+      tracingPublisher = new Publisher(topic, enableTracing);
+      assert.ok(tracingPublisher['tracing']);
+    });
+
+    it('should instantiate a tracer when tracing is enabled through setOptions', () => {
+      tracingPublisher = new Publisher(topic);
+      tracingPublisher.setOptions(enableTracing);
+      assert.ok(tracingPublisher['tracing']);
+    });
+
+    it('should disable tracing when tracing is disabled through setOptions', () => {
+      tracingPublisher = new Publisher(topic, enableTracing);
+      tracingPublisher.setOptions(disableTracing);
+      assert.strictEqual(tracingPublisher['tracing'], undefined);
+    });
+
+    it('export created spans', () => {
+      tracingPublisher = new Publisher(topic, enableTracing);
+
+      // Setup trace exporting
+      const provider: BasicTracerProvider = new BasicTracerProvider();
+      const exporter: InMemorySpanExporter = new InMemorySpanExporter();
+      provider.addSpanProcessor(new SimpleSpanProcessor(exporter));
+      provider.register();
+      opentelemetry.trace.setGlobalTracerProvider(provider);
+
+      tracingPublisher.publish(buffer);
+      assert.ok(exporter.getFinishedSpans());
     });
   });
 
@@ -239,6 +300,48 @@ describe('Publisher', () => {
 
         assert.strictEqual(publisher.orderedQueues.size, 0);
       });
+
+      it('should drain any ordered queues on flush', done => {
+        // We have to stub out the regular queue as well, so that the flush() operation finishes.
+        sandbox
+          .stub(FakeQueue.prototype, 'publish')
+          .callsFake((callback: (err: Error | null) => void) => {
+            callback(null);
+          });
+
+        sandbox
+          .stub(FakeOrderedQueue.prototype, 'publish')
+          .callsFake((callback: (err: Error | null) => void) => {
+            const queue = (publisher.orderedQueues.get(
+              orderingKey
+            ) as unknown) as FakeOrderedQueue;
+            queue.emit('drain');
+            callback(null);
+          });
+
+        publisher.orderedQueues.clear();
+        publisher.publishMessage(fakeMessage, spy);
+
+        publisher.flush(err => {
+          assert.strictEqual(err, null);
+          assert.strictEqual(publisher.orderedQueues.size, 0);
+          done();
+        });
+      });
+
+      it('should issue a warning if OpenTelemetry span context key is set', () => {
+        const warnSpy = sinon.spy(console, 'warn');
+        const attributes = {
+          googclient_OpenTelemetrySpanContext: 'foobar',
+        };
+        const fakeMessageWithOTKey = {data, attributes};
+        const publisherTracing = new Publisher(topic, {
+          enableOpenTelemetryTracing: true,
+        });
+        publisherTracing.publishMessage(fakeMessageWithOTKey, warnSpy);
+        assert.ok(warnSpy.called);
+        warnSpy.restore();
+      });
     });
   });
 
@@ -272,6 +375,7 @@ describe('Publisher', () => {
         gaxOpts: {
           isBundling: false,
         },
+        enableOpenTelemetryTracing: false,
       });
     });
 
@@ -286,6 +390,7 @@ describe('Publisher', () => {
         gaxOpts: {
           isBundling: true,
         },
+        enableOpenTelemetryTracing: true,
       };
 
       publisher.setOptions(options);
@@ -310,9 +415,26 @@ describe('Publisher', () => {
           maxMessages: 1001,
         },
       });
-
-      const expected = 1000;
       assert.strictEqual(publisher.settings.batching!.maxMessages, 1000);
+    });
+  });
+
+  describe('flush', () => {
+    // The ordered queue drain test is above with the ordered queue tests.
+    it('should drain the main publish queue', done => {
+      sandbox.stub(publisher.queue, 'publish').callsFake(cb => {
+        if (cb) {
+          cb(null);
+        }
+      });
+      publisher.flush(err => {
+        assert.strictEqual(err, null);
+        assert.strictEqual(
+          !publisher.queue.batch || publisher.queue.batch.messages.length === 0,
+          true
+        );
+        done();
+      });
     });
   });
 });
